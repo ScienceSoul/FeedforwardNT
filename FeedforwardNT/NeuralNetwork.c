@@ -3,7 +3,6 @@
 //  FeedforwardNT
 //
 //  Created by Seddik hakime on 31/05/2017.
-//  Copyright © 2017 ScienceSoul. All rights reserved.
 //
 
 #include <Accelerate/Accelerate.h>
