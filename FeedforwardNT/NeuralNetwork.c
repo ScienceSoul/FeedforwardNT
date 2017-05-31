@@ -340,6 +340,9 @@ void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLaye
     }
 }
 
+//
+// Free-up all the memory used by a network
+//
 void destroy(void * __nonnull self, int miniBatchSize, bool pthread) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
@@ -596,8 +599,7 @@ void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, floa
         }
         fprintf(stdout, "\n");
     }
-    
-    // Free-up memory
+
     free_fmatrix(miniBatch, 0, miniBatchSize-1, 0, tr2-1);
 }
 
