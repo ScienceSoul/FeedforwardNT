@@ -5,6 +5,7 @@
 //  Created by Seddik hakime on 21/05/2017.
 //
 
+#include <Accelerate/Accelerate.h>
 #include "Utils.h"
 #include "LoadIrisDataSet.h"
 #include "Memory.h"
@@ -343,6 +344,51 @@ int __attribute__((overloadable)) argmax(float * __nonnull a, size_t num_element
     }
     
     return idx;
+}
+
+//  The sigmoid fonction
+float sigmoid(float z) {
+    return 1.0f / (1.0f + expf(-z));
+}
+
+// Derivative of the sigmoid function
+float sigmoidPrime(float z) {
+    return sigmoid(z) * (1.0f - sigmoid(z));
+}
+
+//
+//  Compute the Frobenius norm of a m x n matrix
+//
+float frobeniusNorm(float * __nonnull * __nonnull mat, size_t m, size_t n) {
+    
+    float norm = 0.0f;
+    for (int i=0; i<m; i++) {
+        for (int j=0; j<n; j++) {
+            norm = norm + powf(mat[i][j], 2.0f);
+        }
+    }
+    
+    return sqrtf(norm);
+}
+
+float crossEntropyCost(float * __nonnull a, float * __nonnull y, size_t n) {
+    
+    float cost = 0.0f;
+    float buffer[n];
+    
+    for (int i=0; i<n; i++) {
+        buffer[i] = -y[i]*logf(a[i]) - (1.0f-y[i])*logf(1.0-a[i]);
+    }
+    nanToNum(buffer, n);
+#ifdef __APPLE__
+    vDSP_sve(buffer, 1, &cost, n);
+#else
+    for (int i=0; i<n; i++) {
+        cost = cost + buffer[i];
+    }
+#endif
+    
+    return cost;
 }
 
 void  __attribute__((overloadable)) nanToNum(float * __nonnull array, size_t n) {

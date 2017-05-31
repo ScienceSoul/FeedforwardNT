@@ -45,4 +45,11 @@ int __attribute__((overloadable)) max_array(int * __nonnull a, size_t num_elemen
 int __attribute__((overloadable)) argmax(int * __nonnull a, size_t num_elements);
 int __attribute__((overloadable)) argmax(float * __nonnull a, size_t num_elements);
 
+float sigmoid(float z);
+float sigmoidPrime(float z);
+
+float crossEntropyCost(float * __nonnull a, float * __nonnull y, size_t n);
+
+float frobeniusNorm(float * __nonnull * __nonnull mat, size_t m, size_t n);
+
 void  __attribute__((overloadable)) nanToNum(float * __nonnull array, size_t n);

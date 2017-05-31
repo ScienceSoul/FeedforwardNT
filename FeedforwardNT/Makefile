@@ -17,7 +17,7 @@ LFLAGS = -framework Accelerate
 
 LIBS = -lm
 
-SRCS = main.c Training.c LoadIrisDataSet.c Memory.c Utils.c
+SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c Memory.c Utils.c
 
 # define the C object files
 #
