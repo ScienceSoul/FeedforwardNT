@@ -1,0 +1,8 @@
+# Mac OX S
+*.DS_Store
+
+# XCode
+FeedforwardNT.xcodeproj/project.xcworkspace/*
+FeedforwardNT.xcodeproj/xcuserdata/*
+
+./*.dat
