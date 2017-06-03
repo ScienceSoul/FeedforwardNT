@@ -57,11 +57,11 @@ int main(int argc, const char * argv[]) {
     free_fmatrix(dataSet, 0, len1-1, 0, len2-1);
     
     NeuralNetwork *neural = allocateNeuralNetwork();
-    neural->create((void *)neural, ntLayers, numberOfLayers, miniBatchSize, pthread);
+    neural->create((void *)neural, ntLayers, numberOfLayers, &miniBatchSize, pthread);
     
     fprintf(stdout, "FeedforwardNT: train neural network with the %s data set.\n", dataSetName);
-    neural->SDG((void *)neural, trainingData, testData, tr1, tr2, ts1, ts2, ntLayers, numberOfLayers, inoutSizes, classifications, epochs, miniBatchSize, eta, lambda, pthread);
-    neural->destroy((void *)neural, miniBatchSize, pthread);
+    neural->SDG((void *)neural, trainingData, testData, tr1, tr2, &ts1, &ts2, ntLayers, numberOfLayers, inoutSizes, classifications, epochs, miniBatchSize, eta, lambda, pthread);
+    neural->destroy((void *)neural, &miniBatchSize, pthread);
     fprintf(stdout, "FeedforwardNT: all done.\n");
     
     free(neural);

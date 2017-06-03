@@ -81,55 +81,17 @@ typedef struct NeuralNetwork {
     pthreadBatchNode * __nullable * __nullable threadDataPt;
     pthread_t __nullable * __nullable threadTID;
     
-    void (* __nullable create)(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int miniBatchSize, bool pthread);
-    void (* __nullable destroy)(void * __nonnull self, int miniBatchSize, bool pthread);
+    void (* __nullable create)(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int * __nullable miniBatchSize, bool pthread);
+    void (* __nullable destroy)(void * __nonnull self, int * __nullable miniBatchSize, bool pthread);
     
-    void (* __nullable SDG)(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nonnull * __nonnull testData, size_t tr1, size_t tr2, size_t ts1, size_t ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nonnull classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread);
+    void (* __nullable SDG)(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nullable * __nullable testData, size_t tr1, size_t tr2, size_t * __nullable ts1, size_t * __nullable ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread);
     void (* __nullable updateMiniBatch)(void * __nonnull self, float * __nonnull * __nonnull miniBatch, int miniBatchSize, int * __nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * __nullable pthread);
     void(* __nullable updateWeightsBiases)(void * __nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda);
     void (* __nullable accumulateFromThreads)(void * __nonnull self, int miniBatchSize, bool pthread);
     void * __nullable (* __nullable backpropagation)(void * __nonnull node);
+    void (* __nonnull feedforward)(void * __nonnull self);
     int (* __nullable evaluate)(void * __nonnull self, float * __nonnull * __nonnull testData, size_t ts1, int * __nonnull inoutSizes);
-    float (* __nullable totalCost)(void * __nonnull self, float * __nonnull * __nonnull data, size_t m, int * __nonnull inoutSizes, int * __nonnull classifications, float lambda, bool convert);
+    float (* __nullable totalCost)(void * __nonnull self, float * __nonnull * __nonnull data, size_t m, int * __nonnull inoutSizes, int * __nullable classifications, float lambda, bool convert);
 } NeuralNetwork;
 
-weightNode * __nonnull allocateWeightNode(void);
-biasNode * __nonnull allocateBiasNode(void);
-
-activationNode * __nonnull allocateActivationNode(void);
-zNode * __nonnull allocateZNode(void);
-
-dcdwNode * __nonnull allocateDcdwNode(void);
-dcdbNode * __nonnull allocateDcdbNode(void);
-
-weightNode * __nonnull initWeightsList(int * __nonnull ntLayers, size_t numberOfLayers);
-biasNode * __nonnull initBiasesList(int * __nonnull ntLayers, size_t numberOfLayers);
-
-activationNode * __nonnull initActivationsList(int * __nonnull ntLayers, size_t numberOfLayers);
-zNode * __nonnull initZsList(int * __nonnull ntLayers, size_t numberOfLayers);
-
-dcdwNode * __nonnull initDcdwList(int * __nonnull ntLayers, size_t numberOfLayers);
-dcdbNode * __nonnull initDcdbList(int * __nonnull ntLayers, size_t numberOfLayers);
-
-pthreadBatchNode * __nonnull allocatePthreadBatchNode(void);
-
 NeuralNetwork * __nonnull allocateNeuralNetwork(void);
-void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int miniBatchSize, bool pthread);
-void destroy(void * __nonnull self, int miniBatchSize, bool pthread);
-
-void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nonnull * __nonnull testData, size_t tr1, size_t tr2, size_t ts1, size_t ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nonnull classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread);
-
-void updateMiniBatch(void * __nonnull self, float * __nonnull * __nonnull miniBatch, int miniBatchSize, int * __nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * __nullable pthread);
-
-void updateWeightsBiases(void * __nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda);
-
-void accumulateFromThreads(void * __nonnull self, int miniBatchSize, bool pthread);
-
-void * __nullable backpropagation(void * __nonnull node);
-
-int evaluate(void * __nonnull self, float * __nonnull * __nonnull testData, size_t ts1, int * __nonnull inoutSizes);
-
-float totalCost(void * __nonnull self, float * __nonnull * __nonnull data, size_t m, int * __nonnull inoutSizes, int * __nonnull classifications, float lambda, bool convert);
-
-void __attribute__((overloadable)) feedforward(void * __nonnull self);
-void __attribute__((overloadable)) feedforward(pthreadBatchNode * __nonnull node);

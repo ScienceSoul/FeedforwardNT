@@ -8,6 +8,47 @@
 #include <Accelerate/Accelerate.h>
 #include "NeuralNetwork.h"
 
+
+static weightNode * __nonnull allocateWeightNode(void);
+static biasNode * __nonnull allocateBiasNode(void);
+
+static activationNode * __nonnull allocateActivationNode(void);
+static zNode * __nonnull allocateZNode(void);
+
+static dcdwNode * __nonnull allocateDcdwNode(void);
+static dcdbNode * __nonnull allocateDcdbNode(void);
+
+static weightNode * __nonnull initWeightsList(int * __nonnull ntLayers, size_t numberOfLayers);
+static biasNode * __nonnull initBiasesList(int * __nonnull ntLayers, size_t numberOfLayers);
+
+static activationNode * __nonnull initActivationsList(int * __nonnull ntLayers, size_t numberOfLayers);
+static zNode * __nonnull initZsList(int * __nonnull ntLayers, size_t numberOfLayers);
+
+static dcdwNode * __nonnull initDcdwList(int * __nonnull ntLayers, size_t numberOfLayers);
+static dcdbNode * __nonnull initDcdbList(int * __nonnull ntLayers, size_t numberOfLayers);
+
+static pthreadBatchNode * __nonnull allocatePthreadBatchNode(void);
+
+static void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int * __nullable miniBatchSize, bool pthread);
+static void destroy(void * __nonnull self, int * __nullable miniBatchSize, bool pthread);
+
+static void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nullable * __nullable testData, size_t tr1, size_t tr2, size_t * __nullable ts1, size_t * __nullable ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread);
+
+static void updateMiniBatch(void * __nonnull self, float * __nonnull * __nonnull miniBatch, int miniBatchSize, int * __nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * __nullable pthread);
+
+static void updateWeightsBiases(void * __nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda);
+
+static void accumulateFromThreads(void * __nonnull self, int miniBatchSize, bool pthread);
+
+static void * __nullable backpropagation(void * __nonnull node);
+
+static int evaluate(void * __nonnull self, float * __nonnull * __nonnull testData, size_t ts1, int * __nonnull inoutSizes);
+
+static float totalCost(void * __nonnull self, float * __nonnull * __nonnull data, size_t m, int * __nonnull inoutSizes, int * __nullable classifications, float lambda, bool convert);
+
+static void __attribute__((overloadable)) feedforward(void * __nonnull self);
+static void __attribute__((overloadable)) feedforward(pthreadBatchNode * __nonnull node);
+
 weightNode * __nonnull allocateWeightNode(void) {
     
     weightNode *list = (weightNode *)malloc(sizeof(weightNode));
@@ -292,6 +333,7 @@ NeuralNetwork * __nonnull allocateNeuralNetwork(void) {
     nn->backpropagation = backpropagation;
     nn->evaluate = evaluate;
     nn->totalCost = totalCost;
+    nn->feedforward = feedforward;
     
     return nn;
 }
@@ -299,7 +341,7 @@ NeuralNetwork * __nonnull allocateNeuralNetwork(void) {
 //
 //  Create the network layers, i.e. allocates memory for the weight, bias, activation, z, dC/dx and dC/db data structures
 //
-void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int miniBatchSize, bool pthread) {
+void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int * __nullable miniBatchSize, bool pthread) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -311,10 +353,13 @@ void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLaye
     nn->dcdbsList = initDcdbList(ntLayers, numberOfLayers);
     
     if (pthread) {
-        nn->threadDataPt = (pthreadBatchNode **)malloc(miniBatchSize * sizeof(pthreadBatchNode *));
-        nn->threadTID = (pthread_t *)malloc(miniBatchSize * sizeof(pthread_t));
+        if (miniBatchSize == NULL) {
+            fatal("FeedforwardNT", "mini batch size is NULL in network creation.");
+        }
+        nn->threadDataPt = (pthreadBatchNode **)malloc(*miniBatchSize * sizeof(pthreadBatchNode *));
+        nn->threadTID = (pthread_t *)malloc(*miniBatchSize * sizeof(pthread_t));
         
-        for (int i=0; i<miniBatchSize; i++) {
+        for (int i=0; i<*miniBatchSize; i++) {
             pthreadBatchNode *node = allocatePthreadBatchNode();
             node->max = max_array(ntLayers, numberOfLayers);
             node->weightsList = nn->weightsList;
@@ -342,12 +387,15 @@ void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLaye
 //
 // Free-up all the memory used by a network
 //
-void destroy(void * __nonnull self, int miniBatchSize, bool pthread) {
+void destroy(void * __nonnull self, int * __nullable miniBatchSize, bool pthread) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
     if (pthread) {
-        for (int i=0; i<miniBatchSize; i++) {
+        if (miniBatchSize == NULL) {
+            fatal("FeedforwardNT", "mini batch size is NULL in network destruction.");
+        }
+        for (int i=0; i<*miniBatchSize; i++) {
             pthreadBatchNode *node = nn->threadDataPt[i];
             node->weightsList = NULL;
             node->biasesList = NULL;
@@ -548,7 +596,7 @@ void destroy(void * __nonnull self, int miniBatchSize, bool pthread) {
     }
 }
 
-void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nonnull * __nonnull testData, size_t tr1, size_t tr2, size_t ts1, size_t ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nonnull classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread) {
+void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nullable * __nullable testData, size_t tr1, size_t tr2, size_t * __nullable ts1, size_t * __nullable ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -584,16 +632,16 @@ void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, floa
         fprintf(stdout, "FeedforwardNT: time to complete all training data set (s): %f\n", rt);
         
         if (testData != NULL) {
-            fprintf(stdout, "FeedforwardNT: Epoch {%d/%d}: testing network with {%zu} inputs:\n", k, epochs, ts1);
-            int result = nn->evaluate(self, testData, ts1, inoutSizes);
-            fprintf(stdout, "FeedforwardNT: Epoch {%d/%d}: {%d} / {%zu}.\n", k, epochs, result, ts1);
+            fprintf(stdout, "FeedforwardNT: Epoch {%d/%d}: testing network with {%zu} inputs:\n", k, epochs, *ts1);
+            int result = nn->evaluate(self, testData, *ts1, inoutSizes);
+            fprintf(stdout, "FeedforwardNT: Epoch {%d/%d}: {%d} / {%zu}.\n", k, epochs, result, *ts1);
         }
         
-        float cost = nn->totalCost(self, trainingData, tr1, inoutSizes, classifications, lambda, false);
+        float cost = nn->totalCost(self, trainingData, tr1, inoutSizes, NULL, lambda, false);
         fprintf(stdout, "FeedforwardNT: cost on training data: {%f}\n", cost);
         
         if (testData != NULL) {
-            cost = nn->totalCost(self, testData, ts1, inoutSizes, classifications, lambda, true);
+            cost = nn->totalCost(self, testData, *ts1, inoutSizes, classifications, lambda, true);
             fprintf(stdout, "FeedforwardNT: cost on test data: {%f}\n", cost);
         }
         fprintf(stdout, "\n");
@@ -848,7 +896,7 @@ int evaluate(void * __nonnull self, float * __nonnull * __nonnull testData, size
         for (int i=0; i<inoutSizes[0]; i++) {
             aNodePt->a[i] = testData[k][i];
         }
-        feedforward(self);
+        nn->feedforward(self);
         aNodePt = nn->activationsList;
         while (aNodePt != NULL && aNodePt->next != NULL) {
             aNodePt = aNodePt->next;
@@ -863,7 +911,7 @@ int evaluate(void * __nonnull self, float * __nonnull * __nonnull testData, size
 //
 //  Compute the total cost function using a cross-entropy formulation
 //
-float totalCost(void * __nonnull self, float * __nonnull * __nonnull data, size_t m, int * __nonnull inoutSizes, int * __nonnull classifications, float lambda, bool convert) {
+float totalCost(void * __nonnull self, float * __nonnull * __nonnull data, size_t m, int * __nonnull inoutSizes, int * __nullable classifications, float lambda, bool convert) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -876,7 +924,7 @@ float totalCost(void * __nonnull self, float * __nonnull * __nonnull data, size_
         for (int j=0; j<inoutSizes[0]; j++) {
             aNodePt->a[j] = data[i][j];
         }
-        feedforward(self);
+        nn->feedforward(self);
         aNodePt = nn->activationsList;
         while (aNodePt != NULL && aNodePt->next != NULL) {
             aNodePt = aNodePt->next;

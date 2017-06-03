@@ -64,7 +64,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/seddikhakime/Desktop/parameters.dat"
+            argument = "/Users/seddikhakime/Documents/FeedforwardNT/parameters.dat"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
