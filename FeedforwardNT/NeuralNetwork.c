@@ -5,7 +5,13 @@
 //  Created by Seddik hakime on 31/05/2017.
 //
 
-#include <Accelerate/Accelerate.h>
+#ifdef __APPLE__
+    #include <Accelerate/Accelerate.h>
+#else
+    #include "cblas.h"
+    #include "cblas_f77.h"
+#endif
+
 #include "NeuralNetwork.h"
 
 
