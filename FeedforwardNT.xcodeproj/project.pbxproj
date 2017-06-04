@@ -35,6 +35,7 @@
 		7371ACF41ED9D60900E291B6 /* TimeProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeProfile.h; sourceTree = "<group>"; };
 		7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = NeuralNetwork.c; sourceTree = "<group>"; };
 		7371ACFA1EDEB84B00E291B6 /* NeuralNetwork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NeuralNetwork.h; sourceTree = "<group>"; };
+		7371AD0B1EE4676300E291B6 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
 		73B409021ED14BC9000197ED /* FeedforwardNT */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FeedforwardNT; sourceTree = BUILT_PRODUCTS_DIR; };
 		73B409051ED14BC9000197ED /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		73B4090C1ED14C31000197ED /* LoadIrisDataSet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LoadIrisDataSet.c; sourceTree = "<group>"; };
@@ -85,6 +86,7 @@
 		73B409041ED14BC9000197ED /* FeedforwardNT */ = {
 			isa = PBXGroup;
 			children = (
+				7371AD0B1EE4676300E291B6 /* README */,
 				7371ACF21ED7D42500E291B6 /* Makefile */,
 				73B409051ED14BC9000197ED /* main.c */,
 				7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */,

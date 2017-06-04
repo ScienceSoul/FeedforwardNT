@@ -1,0 +1,34 @@
+FeedforwardNT.
+
+Description:
+
+This program demonstrates the implementation of a neural network. It uses a stochastic gradient descent method with back propagation and a cross-entropy cost function. The activation function is the sigmoid function.
+
+Language: C
+Compiler: Clang/LLVM
+Platform: masOS/Linux (posix threads)
+Required library: BLAS/LAPACK
+
+Compilation:
+
+cd src
+make clean
+make
+
+Run with:
+
+./FeedforwardNT ../params/parameters.dat
+
+The parameters.dat file stores all parameters needed for the run.
+
+Notes:
+
+1) Please note that an implementation of BLAS/LAPACK is required to compile the program.
+
+2) The neural training code is not dependent on any particular input data set but currently the program can only parse the iris data set.
+
+3) The code tries to experiment with a very simple parallelization implementation which uses threads to parallelize the calculations inside a mini batch. It is not beneficial for a small network but on bigger ones, I observed a speed up of 30%-40% to process the training data set, albeit with the disadvantage of some memory overhead. This multithreaded mode can be activated with the command
+
+./FeedforwardNT ../params/parameters.dat -pthread
+
+4) Although the code seems to work as expected, I don't expect it to be totally bug free since I did not do some extensive testing yet.
