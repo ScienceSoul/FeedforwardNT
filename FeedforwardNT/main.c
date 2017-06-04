@@ -60,7 +60,8 @@ int main(int argc, const char * argv[]) {
     neural->create((void *)neural, ntLayers, numberOfLayers, &miniBatchSize, pthread);
     
     fprintf(stdout, "FeedforwardNT: train neural network with the %s data set.\n", dataSetName);
-    neural->SDG((void *)neural, trainingData, testData, tr1, tr2, &ts1, &ts2, ntLayers, numberOfLayers, inoutSizes, classifications, epochs, miniBatchSize, eta, lambda, pthread);
+    bool showCost = true;
+    neural->SDG((void *)neural, trainingData, testData, tr1, tr2, &ts1, &ts2, ntLayers, numberOfLayers, inoutSizes, classifications, epochs, miniBatchSize, eta, lambda, pthread, &showCost);
     neural->destroy((void *)neural, &miniBatchSize, pthread);
     fprintf(stdout, "FeedforwardNT: all done.\n");
     

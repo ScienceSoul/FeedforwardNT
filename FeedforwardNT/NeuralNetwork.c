@@ -32,7 +32,7 @@ static pthreadBatchNode * __nonnull allocatePthreadBatchNode(void);
 static void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int * __nullable miniBatchSize, bool pthread);
 static void destroy(void * __nonnull self, int * __nullable miniBatchSize, bool pthread);
 
-static void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nullable * __nullable testData, size_t tr1, size_t tr2, size_t * __nullable ts1, size_t * __nullable ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread);
+static void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nullable * __nullable testData, size_t tr1, size_t tr2, size_t * __nullable ts1, size_t * __nullable ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread, bool * __nullable showTotalCost);
 
 static void updateMiniBatch(void * __nonnull self, float * __nonnull * __nonnull miniBatch, int miniBatchSize, int * __nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * __nullable pthread);
 
@@ -596,7 +596,7 @@ void destroy(void * __nonnull self, int * __nullable miniBatchSize, bool pthread
     }
 }
 
-void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nullable * __nullable testData, size_t tr1, size_t tr2, size_t * __nullable ts1, size_t * __nullable ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread) {
+void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nullable * __nullable testData, size_t tr1, size_t tr2, size_t * __nullable ts1, size_t * __nullable ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread, bool * __nullable showTotalCost) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -637,12 +637,16 @@ void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, floa
             fprintf(stdout, "FeedforwardNT: Epoch {%d/%d}: {%d} / {%zu}.\n", k, epochs, result, *ts1);
         }
         
-        float cost = nn->totalCost(self, trainingData, tr1, inoutSizes, NULL, lambda, false);
-        fprintf(stdout, "FeedforwardNT: cost on training data: {%f}\n", cost);
-        
-        if (testData != NULL) {
-            cost = nn->totalCost(self, testData, *ts1, inoutSizes, classifications, lambda, true);
-            fprintf(stdout, "FeedforwardNT: cost on test data: {%f}\n", cost);
+        if (showTotalCost != NULL) {
+            if (*showTotalCost == true) {
+                float cost = nn->totalCost(self, trainingData, tr1, inoutSizes, NULL, lambda, false);
+                fprintf(stdout, "FeedforwardNT: cost on training data: {%f}\n", cost);
+                
+                if (testData != NULL) {
+                    cost = nn->totalCost(self, testData, *ts1, inoutSizes, classifications, lambda, true);
+                    fprintf(stdout, "FeedforwardNT: cost on test data: {%f}\n", cost);
+                }
+            }
         }
         fprintf(stdout, "\n");
     }
