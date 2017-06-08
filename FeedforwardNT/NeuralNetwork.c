@@ -704,7 +704,7 @@ void updateMiniBatch(void * __nonnull self, float * __nonnull * __nonnull miniBa
         nn->accumulateFromThreads((void *)nn, miniBatchSize, multiThreadedBatch);
     }
     rt = realtime() - rt;
-    fprintf(stdout, "FeedforwardNT: time to complete a single batch (s): %f\n", rt);
+    fprintf(stdout, "FeedforwardNT: time to complete a single mini-batch (s): %f\n", rt);
     
     
     nn->updateWeightsBiases((void *)nn, miniBatchSize, tr1, eta, lambda);

@@ -245,7 +245,7 @@ void parseArgument(const char * __nonnull argument, const char * __nonnull argum
     int idx = 0;
     *numberOfItems = 0;
     
-    fprintf(stdout, "FeedforwardNT: parsing the %s parameter: %s.\n", argumentName, argument);
+    fprintf(stdout, "FeedforwardNT: parsing the parameter %s: %s.\n", argumentName, argument);
     
     size_t len = strlen(argument);
     if (argument[0] != '{' || argument[len-1] != '}') fatal("FeedforwardNT", "mput argument for network definition should start with <{> and end with <}>.");
