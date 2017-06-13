@@ -15,11 +15,13 @@
 #include "NeuralNetwork.h"
 
 #ifdef USE_OPENCL_GPU
+
 static gpuInference * __nonnull allocateGPUInference(void);
 static GPUCompute * __nonnull  allocateGPUCompute(void);
 static void setUpOpenCLDevice(GPUCompute *compute);
 static gpuInference * __nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * __nonnull weightsList, activationNode * __nonnull activationsList, int * __nonnull ntLayers, size_t numberOfLayers);
 void inference(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore);
+
 #endif
 
 static weightNode * __nonnull allocateWeightNode(void);
@@ -247,6 +249,7 @@ void inference(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore
     }
 #endif
 }
+
 #endif
 
 weightNode * __nonnull allocateWeightNode(void) {
