@@ -3,7 +3,6 @@
 //  FeedforwardNT
 //
 //  Created by Seddik hakime on 10/06/2017.
-//  Copyright © 2017 ScienceSoul. All rights reserved.
 //
 
 #ifndef OpenCLUtils_h
