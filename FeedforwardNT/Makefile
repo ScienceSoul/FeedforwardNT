@@ -8,16 +8,16 @@
 CC = clang
 
 # Compile flags
-CFLAGS = -Wall -O3
+CFLAGS = -Wall -O3 -DUSE_OPENCL_GPU
 
 INCLUDES = -I../include
 
 # BLAS/LAPACK on macOS or use any other implementation
-LFLAGS = -framework Accelerate
+LFLAGS = -framework Accelerate -framework OpenCL
 
 LIBS = -lm
 
-SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c Memory.c Utils.c TimeProfile.c
+SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c Memory.c Utils.c TimeProfile.c OpenCLUtils.c
 
 # define the C object files
 #
