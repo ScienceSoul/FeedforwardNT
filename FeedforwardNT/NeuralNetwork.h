@@ -47,6 +47,7 @@ typedef struct GPUCompute {
     // The sgemv routine
     void (* __nullable inference)(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore);
 } GPUCompute;
+
 #endif
 
 typedef struct weightNode {

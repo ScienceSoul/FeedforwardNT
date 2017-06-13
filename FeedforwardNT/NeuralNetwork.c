@@ -18,7 +18,7 @@
 static gpuInference * __nonnull allocateGPUInference(void);
 static GPUCompute * __nonnull  allocateGPUCompute(void);
 static void setUpOpenCLDevice(GPUCompute *compute);
-static gpuInference * __nonnull initGPUInferenceList(GPUCompute *compute, weightNode * __nonnull weightsList, activationNode * __nonnull activationsList, int * __nonnull ntLayers, size_t numberOfLayers);
+static gpuInference * __nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * __nonnull weightsList, activationNode * __nonnull activationsList, int * __nonnull ntLayers, size_t numberOfLayers);
 void inference(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore);
 #endif
 
@@ -70,7 +70,7 @@ static gpuInference * __nonnull allocateGPUInference(void) {
     return inference;
 }
 
-static gpuInference * __nonnull initGPUInferenceList(GPUCompute *compute, weightNode * __nonnull weightsList, activationNode * __nonnull activationsList, int * __nonnull ntLayers, size_t numberOfLayers) {
+static gpuInference * __nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * __nonnull weightsList, activationNode * __nonnull activationsList, int * __nonnull ntLayers, size_t numberOfLayers) {
     
     cl_int err;
     
@@ -556,7 +556,7 @@ void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLaye
     // Allocate the GPU compute environment
     nn->compute = allocateGPUCompute();
     setUpOpenCLDevice(nn->compute);
-    nn->compute->gpuInferenceStore = initGPUInferenceList(nn->compute, nn->weightsList, nn->activationsList, ntLayers, numberOfLayers);
+    nn->compute->gpuInferenceStore = initGPUInferenceStore(nn->compute, nn->weightsList, nn->activationsList, ntLayers, numberOfLayers);
 #endif
     
     if (pthread) {
