@@ -8,12 +8,46 @@
 #ifndef NeuralNetwork_h
 #define NeuralNetwork_h
 
+#ifdef USE_OPENCL_GPU
+    #include "OpenCLUtils.h"
+#endif
+
 #include <stdio.h>
 #include <pthread.h>
 #include "Utils.h"
 #include "TimeProfile.h"
 
 #endif /* NeuralNetwork_h */
+
+#ifdef USE_OPENCL_GPU
+
+#define OPENCL_PROGRAM_FILE_LOC1 "./kernel/inference.cl"
+#define OPENCL_PROGRAM_FILE_LOC2 "../kernel/inference.cl"
+
+typedef struct gpuInference {
+    int m;
+    int n;
+    cl_mem __nullable W;
+    cl_mem __nullable A;
+    cl_mem __nullable B;
+    cl_mem __nullable Z;
+    // The GPU kernel associated with the sgemv operation
+    cl_kernel __nullable kernel;
+    struct gpuInference * __nullable next;
+    struct gpuInference * __nullable previous;
+} gpuInference;
+
+typedef struct GPUCompute {
+    struct gpuInference * __nullable gpuInferenceStore;
+    cl_program __nullable program;
+    cl_device_id __nullable device;
+    cl_context  __nullable context;
+    cl_command_queue __nullable queue;
+    
+    // The sgemv routine
+    void (* __nullable inference)(void * __nonnull self, gpuInference * __nonnull gInference);
+} GPUCompute;
+#endif
 
 typedef struct weightNode {
     size_t m, n;
@@ -80,6 +114,9 @@ typedef struct NeuralNetwork {
     
     pthreadBatchNode * __nullable * __nullable threadDataPt;
     pthread_t __nullable * __nullable threadTID;
+#ifdef USE_OPENCL_GPU
+    GPUCompute * __nullable compute;
+#endif
     
     void (* __nullable create)(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int * __nullable miniBatchSize, bool pthread);
     void (* __nullable destroy)(void * __nonnull self, int * __nullable miniBatchSize, bool pthread);

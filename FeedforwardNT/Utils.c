@@ -402,7 +402,7 @@ void  __attribute__((overloadable)) nanToNum(float * __nonnull array, size_t n) 
     for (int i=0; i<n; i++) {
         if (isnan(array[i]) != 0) array[i] = 0.0f;
         
-        if (isinf(array[i] != 0)) {
+        if (isinf(array[i]) != 0) {
             if (array[i] > 0) {
                 array[i] = HUGE_VALF;
             } else if (array[i] < 0) {

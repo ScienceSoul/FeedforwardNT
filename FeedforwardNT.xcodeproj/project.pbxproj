@@ -10,6 +10,8 @@
 		7371ACCE1ED32CA900E291B6 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7371ACCD1ED32CA900E291B6 /* Accelerate.framework */; };
 		7371ACF51ED9D60900E291B6 /* TimeProfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 7371ACF31ED9D60900E291B6 /* TimeProfile.c */; };
 		7371ACFB1EDEB84B00E291B6 /* NeuralNetwork.c in Sources */ = {isa = PBXBuildFile; fileRef = 7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */; };
+		7371AD0E1EEBCFDB00E291B6 /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7371AD0D1EEBCFDB00E291B6 /* OpenCL.framework */; };
+		7371AD111EEBF48300E291B6 /* OpenCLUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = 7371AD0F1EEBF48300E291B6 /* OpenCLUtils.c */; };
 		73B409061ED14BC9000197ED /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 73B409051ED14BC9000197ED /* main.c */; };
 		73B4090E1ED14C31000197ED /* LoadIrisDataSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 73B4090C1ED14C31000197ED /* LoadIrisDataSet.c */; };
 		73B409111ED14DF7000197ED /* Memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 73B4090F1ED14DF7000197ED /* Memory.c */; };
@@ -33,9 +35,13 @@
 		7371ACF21ED7D42500E291B6 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		7371ACF31ED9D60900E291B6 /* TimeProfile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TimeProfile.c; sourceTree = "<group>"; };
 		7371ACF41ED9D60900E291B6 /* TimeProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeProfile.h; sourceTree = "<group>"; };
-		7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = NeuralNetwork.c; sourceTree = "<group>"; };
-		7371ACFA1EDEB84B00E291B6 /* NeuralNetwork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NeuralNetwork.h; sourceTree = "<group>"; };
+		7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = NeuralNetwork.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
+		7371ACFA1EDEB84B00E291B6 /* NeuralNetwork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = NeuralNetwork.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		7371AD0B1EE4676300E291B6 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		7371AD0D1EEBCFDB00E291B6 /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = System/Library/Frameworks/OpenCL.framework; sourceTree = SDKROOT; };
+		7371AD0F1EEBF48300E291B6 /* OpenCLUtils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = OpenCLUtils.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
+		7371AD101EEBF48300E291B6 /* OpenCLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = OpenCLUtils.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		7371AD151EEEAFEC00E291B6 /* inference.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; name = inference.cl; path = kernel/inference.cl; sourceTree = SOURCE_ROOT; };
 		73B409021ED14BC9000197ED /* FeedforwardNT */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FeedforwardNT; sourceTree = BUILT_PRODUCTS_DIR; };
 		73B409051ED14BC9000197ED /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		73B4090C1ED14C31000197ED /* LoadIrisDataSet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LoadIrisDataSet.c; sourceTree = "<group>"; };
@@ -51,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7371AD0E1EEBCFDB00E291B6 /* OpenCL.framework in Frameworks */,
 				7371ACCE1ED32CA900E291B6 /* Accelerate.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -61,6 +68,7 @@
 		7371ACCC1ED32CA900E291B6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				7371AD0D1EEBCFDB00E291B6 /* OpenCL.framework */,
 				7371ACCD1ED32CA900E291B6 /* Accelerate.framework */,
 			);
 			name = Frameworks;
@@ -99,6 +107,9 @@
 				73B409161ED19FE6000197ED /* Utils.h */,
 				7371ACF31ED9D60900E291B6 /* TimeProfile.c */,
 				7371ACF41ED9D60900E291B6 /* TimeProfile.h */,
+				7371AD0F1EEBF48300E291B6 /* OpenCLUtils.c */,
+				7371AD101EEBF48300E291B6 /* OpenCLUtils.h */,
+				7371AD151EEEAFEC00E291B6 /* inference.cl */,
 			);
 			path = FeedforwardNT;
 			sourceTree = "<group>";
@@ -166,6 +177,7 @@
 				73B409111ED14DF7000197ED /* Memory.c in Sources */,
 				7371ACF51ED9D60900E291B6 /* TimeProfile.c in Sources */,
 				73B4090E1ED14C31000197ED /* LoadIrisDataSet.c in Sources */,
+				7371AD111EEBF48300E291B6 /* OpenCLUtils.c in Sources */,
 				73B409171ED19FE6000197ED /* Utils.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -266,6 +278,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DEVELOPMENT_TEAM = 65WT6FN4B4;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					USE_OPENCL_GPU,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
