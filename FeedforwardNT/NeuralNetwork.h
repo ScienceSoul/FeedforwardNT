@@ -45,7 +45,7 @@ typedef struct GPUCompute {
     cl_command_queue __nullable queue;
     
     // The sgemv routine
-    void (* __nullable inference)(void * __nonnull self, gpuInference * __nonnull gInference);
+    void (* __nullable inference)(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore);
 } GPUCompute;
 #endif
 

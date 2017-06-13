@@ -19,7 +19,7 @@ static gpuInference * __nonnull allocateGPUInference(void);
 static GPUCompute * __nonnull  allocateGPUCompute(void);
 static void setUpOpenCLDevice(GPUCompute *compute);
 static gpuInference * __nonnull initGPUInferenceList(GPUCompute *compute, weightNode * __nonnull weightsList, activationNode * __nonnull activationsList, int * __nonnull ntLayers, size_t numberOfLayers);
-void inference(void * __nonnull self, gpuInference * __nonnull gInference);
+void inference(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore);
 #endif
 
 static weightNode * __nonnull allocateWeightNode(void);
@@ -226,15 +226,15 @@ static void setUpOpenCLDevice(GPUCompute *compute) {
     fprintf(stdout, "FeedforwardNT: done.\n");
 }
 
-void inference(void * __nonnull self, gpuInference * __nonnull gInference) {
+void inference(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore) {
     
     cl_int err;
     
     GPUCompute *compute = (GPUCompute *)self;
     
     // Enqueue kernel
-    size_t globalSize = gInference->m;
-    err = clEnqueueNDRangeKernel(compute->queue, gInference->kernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
+    size_t globalSize = gpuInferenceStore->m;
+    err = clEnqueueNDRangeKernel(compute->queue, gpuInferenceStore->kernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
 #ifdef DEBUG
     if(err < 0) {
         fatal("FeedforwardNT", "couldn't enqueue the kernel.");
