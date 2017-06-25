@@ -8,7 +8,7 @@
 #include "Memory.h"
 #include "LoadIrisDataSet.h"
 
-float **readFile(const char * __nonnull file, size_t * __nonnull len) {
+float **readFile(const char * _Nonnull file, size_t * _Nonnull len) {
     
     FILE *f1 = fopen(file,"r");
     if(!f1) {
@@ -83,7 +83,7 @@ float **readFile(const char * __nonnull file, size_t * __nonnull len) {
     return dataSet;
 }
 
-float **loadIris(const char * __nonnull file, size_t * __nonnull len) {
+float **loadIris(const char * _Nonnull file, size_t * _Nonnull len) {
     
     float **dataSet = readFile(file, len);
     if (dataSet == NULL) {

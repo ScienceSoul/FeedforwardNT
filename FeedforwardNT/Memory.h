@@ -15,9 +15,9 @@
 
 #endif /* Memory_h */
 
-int * __nonnull intvec(long nl, long nh);
-float * __nonnull floatvec(long nl, long nh);
-float * __nonnull * __nonnull floatmatrix(long nrl, long nrh, long ncl, long nch);
-void free_ivector(int * __nonnull v, long nl, long nh);
-void free_fvector(float * __nonnull v, long nl, long nh);
-void free_fmatrix(float * __nonnull * __nonnull m, long nrl, long nrh, long ncl, long nch);
+int * _Nonnull intvec(long nl, long nh);
+float * _Nonnull floatvec(long nl, long nh);
+float * _Nonnull * _Nonnull floatmatrix(long nrl, long nrh, long ncl, long nch);
+void free_ivector(int * _Nonnull v, long nl, long nh);
+void free_fvector(float * _Nonnull v, long nl, long nh);
+void free_fmatrix(float * _Nonnull * _Nonnull m, long nrl, long nrh, long ncl, long nch);

@@ -16,63 +16,63 @@
 
 #ifdef USE_OPENCL_GPU
 
-static gpuInference * __nonnull allocateGPUInference(void);
-static GPUCompute * __nonnull  allocateGPUCompute(void);
+static gpuInference * _Nonnull allocateGPUInference(void);
+static GPUCompute * _Nonnull  allocateGPUCompute(void);
 static void setUpOpenCLDevice(GPUCompute *compute);
-static gpuInference * __nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * __nonnull weightsList, activationNode * __nonnull activationsList, int * __nonnull ntLayers, size_t numberOfLayers);
-void inference(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore);
+static gpuInference * _Nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * _Nonnull weightsList, activationNode * _Nonnull activationsList, int * _Nonnull ntLayers, size_t numberOfLayers);
+void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore);
 
 #endif
 
-static weightNode * __nonnull allocateWeightNode(void);
-static biasNode * __nonnull allocateBiasNode(void);
+static weightNode * _Nonnull allocateWeightNode(void);
+static biasNode * _Nonnull allocateBiasNode(void);
 
-static activationNode * __nonnull allocateActivationNode(void);
-static zNode * __nonnull allocateZNode(void);
+static activationNode * _Nonnull allocateActivationNode(void);
+static zNode * _Nonnull allocateZNode(void);
 
-static dcdwNode * __nonnull allocateDcdwNode(void);
-static dcdbNode * __nonnull allocateDcdbNode(void);
+static dcdwNode * _Nonnull allocateDcdwNode(void);
+static dcdbNode * _Nonnull allocateDcdbNode(void);
 
-static weightNode * __nonnull initWeightsList(int * __nonnull ntLayers, size_t numberOfLayers);
-static biasNode * __nonnull initBiasesList(int * __nonnull ntLayers, size_t numberOfLayers);
+static weightNode * _Nonnull initWeightsList(int * _Nonnull ntLayers, size_t numberOfLayers);
+static biasNode * _Nonnull initBiasesList(int * _Nonnull ntLayers, size_t numberOfLayers);
 
-static activationNode * __nonnull initActivationsList(int * __nonnull ntLayers, size_t numberOfLayers);
-static zNode * __nonnull initZsList(int * __nonnull ntLayers, size_t numberOfLayers);
+static activationNode * _Nonnull initActivationsList(int * _Nonnull ntLayers, size_t numberOfLayers);
+static zNode * _Nonnull initZsList(int * _Nonnull ntLayers, size_t numberOfLayers);
 
-static dcdwNode * __nonnull initDcdwList(int * __nonnull ntLayers, size_t numberOfLayers);
-static dcdbNode * __nonnull initDcdbList(int * __nonnull ntLayers, size_t numberOfLayers);
+static dcdwNode * _Nonnull initDcdwList(int * _Nonnull ntLayers, size_t numberOfLayers);
+static dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOfLayers);
 
-static pthreadBatchNode * __nonnull allocatePthreadBatchNode(void);
+static pthreadBatchNode * _Nonnull allocatePthreadBatchNode(void);
 
-static void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int * __nullable miniBatchSize, bool pthread);
-static void destroy(void * __nonnull self, int * __nullable miniBatchSize, bool pthread);
+static void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nullable miniBatchSize, bool pthread);
+static void destroy(void * _Nonnull self, int * _Nullable miniBatchSize, bool pthread);
 
-static void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nullable * __nullable testData, size_t tr1, size_t tr2, size_t * __nullable ts1, size_t * __nullable ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread, bool * __nullable showTotalCost);
+static void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float * _Nullable * _Nullable testData, size_t tr1, size_t tr2, size_t * _Nullable ts1, size_t * _Nullable ts2, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nonnull inoutSizes, int * _Nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread, bool * _Nullable showTotalCost);
 
-static void updateMiniBatch(void * __nonnull self, float * __nonnull * __nonnull miniBatch, int miniBatchSize, int * __nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * __nullable pthread);
+static void updateMiniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int miniBatchSize, int * _Nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * _Nullable pthread);
 
-static void updateWeightsBiases(void * __nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda);
+static void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda);
 
-static void accumulateFromThreads(void * __nonnull self, int miniBatchSize, bool pthread);
+static void accumulateFromThreads(void * _Nonnull self, int miniBatchSize, bool pthread);
 
-static void * __nullable backpropagation(void * __nonnull node);
+static void * _Nullable backpropagation(void * _Nonnull node);
 
-static int evaluate(void * __nonnull self, float * __nonnull * __nonnull testData, size_t ts1, int * __nonnull inoutSizes);
+static int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t ts1, int * _Nonnull inoutSizes);
 
-static float totalCost(void * __nonnull self, float * __nonnull * __nonnull data, size_t m, int * __nonnull inoutSizes, int * __nullable classifications, float lambda, bool convert);
+static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, int * _Nonnull inoutSizes, int * _Nullable classifications, float lambda, bool convert);
 
-static void __attribute__((overloadable)) feedforward(void * __nonnull self);
-static void __attribute__((overloadable)) feedforward(pthreadBatchNode * __nonnull node);
+static void __attribute__((overloadable)) feedforward(void * _Nonnull self);
+static void __attribute__((overloadable)) feedforward(pthreadBatchNode * _Nonnull node);
 
 #ifdef USE_OPENCL_GPU
 
-static gpuInference * __nonnull allocateGPUInference(void) {
+static gpuInference * _Nonnull allocateGPUInference(void) {
     gpuInference *inference = (gpuInference *)malloc(sizeof(gpuInference));
     *inference = (gpuInference){.m=0, .n=0, .W=NULL, .A=NULL, .B=NULL, .Z=NULL, .kernel=NULL, .next=NULL, .previous=NULL};
     return inference;
 }
 
-static gpuInference * __nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * __nonnull weightsList, activationNode * __nonnull activationsList, int * __nonnull ntLayers, size_t numberOfLayers) {
+static gpuInference * _Nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * _Nonnull weightsList, activationNode * _Nonnull activationsList, int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     cl_int err;
     
@@ -171,7 +171,7 @@ static gpuInference * __nonnull initGPUInferenceStore(GPUCompute *compute, weigh
     return inferenceList;
 }
 
-static GPUCompute * __nonnull  allocateGPUCompute(void) {
+static GPUCompute * _Nonnull  allocateGPUCompute(void) {
     
     GPUCompute *compute = (GPUCompute *)malloc(sizeof(GPUCompute));
     *compute = (GPUCompute){.gpuInferenceStore=NULL, .program=NULL, .device=NULL, .context=NULL, .queue=NULL};
@@ -182,7 +182,7 @@ static GPUCompute * __nonnull  allocateGPUCompute(void) {
 static void setUpOpenCLDevice(GPUCompute *compute) {
     
     cl_int err;
-    char * __nullable kernel_source;
+    char * _Nullable kernel_source;
     size_t src_len;
     
     compute->device = find_single_device();
@@ -228,7 +228,7 @@ static void setUpOpenCLDevice(GPUCompute *compute) {
     fprintf(stdout, "FeedforwardNT: done.\n");
 }
 
-void inference(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore) {
+void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore) {
     
     cl_int err;
     
@@ -252,38 +252,38 @@ void inference(void * __nonnull self, gpuInference * __nonnull gpuInferenceStore
 
 #endif
 
-weightNode * __nonnull allocateWeightNode(void) {
+weightNode * _Nonnull allocateWeightNode(void) {
     
     weightNode *list = (weightNode *)malloc(sizeof(weightNode));
     *list = (weightNode){.m=0, .n=0, .w=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-biasNode * __nonnull allocateBiasNode(void) {
+biasNode * _Nonnull allocateBiasNode(void) {
     biasNode *list = (biasNode *)malloc(sizeof(biasNode));
     *list = (biasNode){.n=0, .b=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-activationNode * __nonnull allocateActivationNode(void) {
+activationNode * _Nonnull allocateActivationNode(void) {
     activationNode *list = (activationNode *)malloc(sizeof(activationNode));
     *list = (activationNode){.n=0, .a=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-zNode * __nonnull allocateZNode(void) {
+zNode * _Nonnull allocateZNode(void) {
     zNode *list = (zNode *)malloc(sizeof(zNode));
     *list = (zNode){.n=0, .z=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-dcdwNode * __nonnull allocateDcdwNode(void) {
+dcdwNode * _Nonnull allocateDcdwNode(void) {
     dcdwNode *list = (dcdwNode *)malloc(sizeof(dcdwNode));
     *list = (dcdwNode){.m=0, .n=0, .dcdw=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-dcdbNode * __nonnull allocateDcdbNode(void) {
+dcdbNode * _Nonnull allocateDcdbNode(void) {
     dcdbNode *list = (dcdbNode *)malloc(sizeof(dcdbNode));
     *list = (dcdbNode){.n=0, .dcdb=NULL, .next=NULL, .previous=NULL};
     return list;
@@ -292,7 +292,7 @@ dcdbNode * __nonnull allocateDcdbNode(void) {
 //
 //  Allocate a single node in the batch
 //
-pthreadBatchNode * __nonnull allocatePthreadBatchNode(void) {
+pthreadBatchNode * _Nonnull allocatePthreadBatchNode(void) {
     
     pthreadBatchNode *node = (pthreadBatchNode *)malloc(sizeof(pthreadBatchNode));
     *node = (pthreadBatchNode){.index=0, .max=0, .batch=NULL, .weightsList=NULL, .biasesList=NULL, .activationsList=NULL, .zsList=NULL,
@@ -308,7 +308,7 @@ pthreadBatchNode * __nonnull allocatePthreadBatchNode(void) {
 //
 //  Return a pointer to the list head.
 //
-weightNode * __nonnull initWeightsList(int * __nonnull ntLayers, size_t numberOfLayers) {
+weightNode * _Nonnull initWeightsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     weightNode *weightsList = allocateWeightNode();
     
@@ -352,7 +352,7 @@ weightNode * __nonnull initWeightsList(int * __nonnull ntLayers, size_t numberOf
 //
 //  Return a pointer to the list head.
 //
-biasNode * __nonnull initBiasesList(int * __nonnull ntLayers, size_t numberOfLayers) {
+biasNode * _Nonnull initBiasesList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     biasNode *biasesList = allocateBiasNode();
     
@@ -390,7 +390,7 @@ biasNode * __nonnull initBiasesList(int * __nonnull ntLayers, size_t numberOfLay
 //
 //  Return a pointer to the list head.
 //
-activationNode * __nonnull initActivationsList(int * __nonnull ntLayers, size_t numberOfLayers) {
+activationNode * _Nonnull initActivationsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     activationNode *activationsList = allocateActivationNode();
     
@@ -426,7 +426,7 @@ activationNode * __nonnull initActivationsList(int * __nonnull ntLayers, size_t 
 //
 //  Return a pointer to the list head.
 //
-zNode * __nonnull initZsList(int * __nonnull ntLayers, size_t numberOfLayers) {
+zNode * _Nonnull initZsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     zNode *zsList = allocateZNode();
     
@@ -462,7 +462,7 @@ zNode * __nonnull initZsList(int * __nonnull ntLayers, size_t numberOfLayers) {
 //
 //  Return a pointer to the list head.
 //
-dcdwNode * __nonnull initDcdwList(int * __nonnull ntLayers, size_t numberOfLayers) {
+dcdwNode * _Nonnull initDcdwList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     dcdwNode *dcdwList = allocateDcdwNode();
     
@@ -494,7 +494,7 @@ dcdwNode * __nonnull initDcdwList(int * __nonnull ntLayers, size_t numberOfLayer
 //
 //  Return a pointer to the list head.
 //
-dcdbNode * __nonnull initDcdbList(int * __nonnull ntLayers, size_t numberOfLayers) {
+dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     dcdbNode *dcdbList = allocateDcdbNode();
     
@@ -522,7 +522,7 @@ dcdbNode * __nonnull initDcdbList(int * __nonnull ntLayers, size_t numberOfLayer
 //
 // Allocate memory for a neural network
 //
-NeuralNetwork * __nonnull allocateNeuralNetwork(void) {
+NeuralNetwork * _Nonnull allocateNeuralNetwork(void) {
     
     NeuralNetwork *nn = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
     *nn = (NeuralNetwork){.weightsList=NULL, .biasesList=NULL, .activationsList=NULL, .zsList=NULL,
@@ -544,7 +544,7 @@ NeuralNetwork * __nonnull allocateNeuralNetwork(void) {
 //
 //  Create the network layers, i.e. allocates memory for the weight, bias, activation, z, dC/dx and dC/db data structures
 //
-void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLayers, int * __nullable miniBatchSize, bool pthread) {
+void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nullable miniBatchSize, bool pthread) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -597,7 +597,7 @@ void create(void * __nonnull self, int * __nonnull ntLayers, size_t numberOfLaye
 //
 // Free-up all the memory used by a network
 //
-void destroy(void * __nonnull self, int * __nullable miniBatchSize, bool pthread) {
+void destroy(void * _Nonnull self, int * _Nullable miniBatchSize, bool pthread) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -833,7 +833,7 @@ void destroy(void * __nonnull self, int * __nullable miniBatchSize, bool pthread
 #endif
 }
 
-void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, float * __nullable * __nullable testData, size_t tr1, size_t tr2, size_t * __nullable ts1, size_t * __nullable ts2, int * __nonnull ntLayers, size_t numberOfLayers, int * __nonnull inoutSizes, int * __nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread, bool * __nullable showTotalCost) {
+void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float * _Nullable * _Nullable testData, size_t tr1, size_t tr2, size_t * _Nullable ts1, size_t * _Nullable ts2, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nonnull inoutSizes, int * _Nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread, bool * _Nullable showTotalCost) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -895,7 +895,7 @@ void SDG(void * __nonnull self, float * __nonnull * __nonnull trainingData, floa
     free_fmatrix(miniBatch, 0, miniBatchSize-1, 0, tr2-1);
 }
 
-void updateMiniBatch(void * __nonnull self, float * __nonnull * __nonnull miniBatch, int miniBatchSize, int * __nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * __nullable pthread) {
+void updateMiniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int miniBatchSize, int * _Nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * _Nullable pthread) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -945,7 +945,7 @@ void updateMiniBatch(void * __nonnull self, float * __nonnull * __nonnull miniBa
     nn->updateWeightsBiases((void *)nn, miniBatchSize, tr1, eta, lambda);
 }
 
-void updateWeightsBiases(void * __nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda) {
+void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1006,7 +1006,7 @@ void updateWeightsBiases(void * __nonnull self, int miniBatchSize, size_t tr1, f
 #endif
 }
 
-void accumulateFromThreads(void * __nonnull self, int miniBatchSize, bool pthread) {
+void accumulateFromThreads(void * _Nonnull self, int miniBatchSize, bool pthread) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1061,7 +1061,7 @@ void accumulateFromThreads(void * __nonnull self, int miniBatchSize, bool pthrea
 //
 //  Return the gradient of the cross-entropy cost function C_x layers by layers
 //
-void * __nullable backpropagation(void * __nonnull node) {
+void * _Nullable backpropagation(void * _Nonnull node) {
     
     pthreadBatchNode *entry = (pthreadBatchNode *)node;
     
@@ -1160,7 +1160,7 @@ void * __nullable backpropagation(void * __nonnull node) {
     return NULL;
 }
 
-int evaluate(void * __nonnull self, float * __nonnull * __nonnull testData, size_t ts1, int * __nonnull inoutSizes) {
+int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t ts1, int * _Nonnull inoutSizes) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1219,7 +1219,7 @@ int evaluate(void * __nonnull self, float * __nonnull * __nonnull testData, size
 //
 //  Compute the total cost function using a cross-entropy formulation
 //
-float totalCost(void * __nonnull self, float * __nonnull * __nonnull data, size_t m, int * __nonnull inoutSizes, int * __nullable classifications, float lambda, bool convert) {
+float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, int * _Nonnull inoutSizes, int * _Nullable classifications, float lambda, bool convert) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1298,7 +1298,7 @@ float totalCost(void * __nonnull self, float * __nonnull * __nonnull data, size_
 //
 //  Return the output of the network for a given activation input
 //
-void __attribute__((overloadable)) feedforward(void * __nonnull self) {
+void __attribute__((overloadable)) feedforward(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1348,7 +1348,7 @@ void __attribute__((overloadable)) feedforward(void * __nonnull self) {
 #endif
 }
 
-void __attribute__((overloadable)) feedforward(pthreadBatchNode * __nonnull node) {
+void __attribute__((overloadable)) feedforward(pthreadBatchNode * _Nonnull node) {
     
     weightNode *wNodePt = node->weightsList;
     biasNode *bNodePt = node->biasesList;

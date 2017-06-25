@@ -27,29 +27,29 @@ void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_No
 void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_Nonnull], int n);
 void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_Nonnull], double n);
 
-int loadParameters(const char * __nonnull paraFile, char * __nonnull dataSetName, char * __nonnull dataSetFile, int * __nonnull ntLayers, size_t * __nonnull numberOfLayers, int * __nonnull dataDivisions, size_t * __nonnull numberOfDataDivisions, int * __nonnull classifications, size_t * __nonnull numberOfClassifications, int * __nonnull inoutSizes, size_t * __nonnull numberOfInouts, int * __nonnull epochs, int * __nonnull miniBatchSize, float * __nonnull eta, float * __nonnull lambda);
+int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile, int * _Nonnull ntLayers, size_t * _Nonnull numberOfLayers, int * _Nonnull dataDivisions, size_t * _Nonnull numberOfDataDivisions, int * _Nonnull classifications, size_t * _Nonnull numberOfClassifications, int * _Nonnull inoutSizes, size_t * _Nonnull numberOfInouts, int * _Nonnull epochs, int * _Nonnull miniBatchSize, float * _Nonnull eta, float * _Nonnull lambda);
 
-float * __nonnull * __nonnull loadData(const char * __nonnull dataSetName, const char * __nonnull fileName, size_t * __nonnull len1, size_t * __nonnull len2);
+float * _Nonnull * _Nonnull loadData(const char * _Nonnull dataSetName, const char * _Nonnull fileName, size_t * _Nonnull len1, size_t * _Nonnull len2);
 
-float * __nonnull * __nonnull createTrainigData(float * __nonnull * __nonnull dataSet, size_t start, size_t end, size_t * __nonnull t1, size_t * __nonnull t2, int * __nonnull classifications, size_t numberOfClassifications, int * __nonnull inoutSizes);
+float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2, int * _Nonnull classifications, size_t numberOfClassifications, int * _Nonnull inoutSizes);
 
-float * __nonnull * __nonnull createTestData(float * __nonnull * __nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * __nonnull t1, size_t * __nonnull t2);
+float * _Nonnull * _Nonnull createTestData(float * _Nonnull * _Nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2);
 
-void shuffle(float * __nonnull * __nonnull array, size_t len1, size_t len2);
-void parseArgument(const char * __nonnull argument, const char * __nonnull argumentName, int * __nonnull result, size_t * __nonnull numberOfItems);
+void shuffle(float * _Nonnull * _Nonnull array, size_t len1, size_t len2);
+void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int * _Nonnull result, size_t * _Nonnull numberOfItems);
 float randn(float mu, float sigma);
 
-int __attribute__((overloadable)) min_array(int * __nonnull a, size_t num_elements);
-int __attribute__((overloadable)) max_array(int * __nonnull a, size_t num_elements);
+int __attribute__((overloadable)) min_array(int * _Nonnull a, size_t num_elements);
+int __attribute__((overloadable)) max_array(int * _Nonnull a, size_t num_elements);
 
-int __attribute__((overloadable)) argmax(int * __nonnull a, size_t num_elements);
-int __attribute__((overloadable)) argmax(float * __nonnull a, size_t num_elements);
+int __attribute__((overloadable)) argmax(int * _Nonnull a, size_t num_elements);
+int __attribute__((overloadable)) argmax(float * _Nonnull a, size_t num_elements);
 
 float sigmoid(float z);
 float sigmoidPrime(float z);
 
-float crossEntropyCost(float * __nonnull a, float * __nonnull y, size_t n);
+float crossEntropyCost(float * _Nonnull a, float * _Nonnull y, size_t n);
 
-float frobeniusNorm(float * __nonnull * __nonnull mat, size_t m, size_t n);
+float frobeniusNorm(float * _Nonnull * _Nonnull mat, size_t m, size_t n);
 
-void  __attribute__((overloadable)) nanToNum(float * __nonnull array, size_t n);
+void  __attribute__((overloadable)) nanToNum(float * _Nonnull array, size_t n);
