@@ -19,6 +19,7 @@ inline float nanToNum(float value) {
     return val;
 }
 
+// Kernel is not optimized, could make better use of local memory
 __kernel void inference(int M, int N, __global float *W, __global float *A, __global float *B, __global float *Z) {
     
     float sum, val=0.0f;

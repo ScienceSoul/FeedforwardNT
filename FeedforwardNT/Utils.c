@@ -7,9 +7,6 @@
 
 #ifdef __APPLE__
     #include <Accelerate/Accelerate.h>
-#else
-    #include "cblas.h"
-    #include "cblas_f77.h"
 #endif
 
 #include "Utils.h"

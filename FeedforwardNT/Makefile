@@ -12,7 +12,7 @@ CFLAGS = -Wall -O3 -DUSE_OPENCL_GPU
 
 INCLUDES = -I../include
 
-# BLAS/LAPACK on macOS or use any other implementation
+# BLAS/LAPACK (required) and OpenCL (optional) on macOS or use any other implementation
 LFLAGS = -framework Accelerate -framework OpenCL
 
 LIBS = -lm
