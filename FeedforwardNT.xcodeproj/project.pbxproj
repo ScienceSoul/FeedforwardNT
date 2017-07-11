@@ -7,16 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		733208591F14CEA600B4611F /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 733208581F14CEA600B4611F /* README.md */; };
+		733208641F14D66700B4611F /* LoadIrisDataSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 7332085D1F14D66700B4611F /* LoadIrisDataSet.c */; };
+		733208651F14D66700B4611F /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 7332085E1F14D66700B4611F /* main.c */; };
+		733208661F14D66700B4611F /* Memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 7332085F1F14D66700B4611F /* Memory.c */; };
+		733208671F14D66700B4611F /* NeuralNetwork.c in Sources */ = {isa = PBXBuildFile; fileRef = 733208601F14D66700B4611F /* NeuralNetwork.c */; };
+		733208681F14D66700B4611F /* OpenCLUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = 733208611F14D66700B4611F /* OpenCLUtils.c */; };
+		733208691F14D66700B4611F /* TimeProfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 733208621F14D66700B4611F /* TimeProfile.c */; };
+		7332086A1F14D66700B4611F /* Utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 733208631F14D66700B4611F /* Utils.c */; };
 		7371ACCE1ED32CA900E291B6 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7371ACCD1ED32CA900E291B6 /* Accelerate.framework */; };
-		7371ACF51ED9D60900E291B6 /* TimeProfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 7371ACF31ED9D60900E291B6 /* TimeProfile.c */; };
-		7371ACFB1EDEB84B00E291B6 /* NeuralNetwork.c in Sources */ = {isa = PBXBuildFile; fileRef = 7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */; };
 		7371AD0E1EEBCFDB00E291B6 /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7371AD0D1EEBCFDB00E291B6 /* OpenCL.framework */; };
-		7371AD111EEBF48300E291B6 /* OpenCLUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = 7371AD0F1EEBF48300E291B6 /* OpenCLUtils.c */; };
-		73B409061ED14BC9000197ED /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 73B409051ED14BC9000197ED /* main.c */; };
-		73B4090E1ED14C31000197ED /* LoadIrisDataSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 73B4090C1ED14C31000197ED /* LoadIrisDataSet.c */; };
-		73B409111ED14DF7000197ED /* Memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 73B4090F1ED14DF7000197ED /* Memory.c */; };
-		73B409171ED19FE6000197ED /* Utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73B409151ED19FE6000197ED /* Utils.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,24 +32,23 @@
 
 /* Begin PBXFileReference section */
 		733208581F14CEA600B4611F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		7332085D1F14D66700B4611F /* LoadIrisDataSet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = LoadIrisDataSet.c; path = src/LoadIrisDataSet.c; sourceTree = "<group>"; };
+		7332085E1F14D66700B4611F /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = src/main.c; sourceTree = "<group>"; };
+		7332085F1F14D66700B4611F /* Memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Memory.c; path = src/Memory.c; sourceTree = "<group>"; };
+		733208601F14D66700B4611F /* NeuralNetwork.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = NeuralNetwork.c; path = src/NeuralNetwork.c; sourceTree = "<group>"; };
+		733208611F14D66700B4611F /* OpenCLUtils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = OpenCLUtils.c; path = src/OpenCLUtils.c; sourceTree = "<group>"; };
+		733208621F14D66700B4611F /* TimeProfile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = TimeProfile.c; path = src/TimeProfile.c; sourceTree = "<group>"; };
+		733208631F14D66700B4611F /* Utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Utils.c; path = src/Utils.c; sourceTree = "<group>"; };
+		7332086B1F14D67900B4611F /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = src/Makefile; sourceTree = "<group>"; };
+		7332086D1F14D68700B4611F /* LoadIrisDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LoadIrisDataSet.h; path = include/LoadIrisDataSet.h; sourceTree = "<group>"; };
+		7332086E1F14D68700B4611F /* Memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Memory.h; path = include/Memory.h; sourceTree = "<group>"; };
+		7332086F1F14D68700B4611F /* NeuralNetwork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NeuralNetwork.h; path = include/NeuralNetwork.h; sourceTree = "<group>"; };
+		733208701F14D68700B4611F /* OpenCLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpenCLUtils.h; path = include/OpenCLUtils.h; sourceTree = "<group>"; };
+		733208711F14D68700B4611F /* TimeProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TimeProfile.h; path = include/TimeProfile.h; sourceTree = "<group>"; };
+		733208721F14D68700B4611F /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utils.h; path = include/Utils.h; sourceTree = "<group>"; };
 		7371ACCD1ED32CA900E291B6 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
-		7371ACF21ED7D42500E291B6 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		7371ACF31ED9D60900E291B6 /* TimeProfile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TimeProfile.c; sourceTree = "<group>"; };
-		7371ACF41ED9D60900E291B6 /* TimeProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeProfile.h; sourceTree = "<group>"; };
-		7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = NeuralNetwork.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		7371ACFA1EDEB84B00E291B6 /* NeuralNetwork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = NeuralNetwork.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		7371AD0D1EEBCFDB00E291B6 /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = System/Library/Frameworks/OpenCL.framework; sourceTree = SDKROOT; };
-		7371AD0F1EEBF48300E291B6 /* OpenCLUtils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = OpenCLUtils.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		7371AD101EEBF48300E291B6 /* OpenCLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = OpenCLUtils.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		7371AD151EEEAFEC00E291B6 /* inference.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; name = inference.cl; path = kernel/inference.cl; sourceTree = SOURCE_ROOT; };
 		73B409021ED14BC9000197ED /* FeedforwardNT */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FeedforwardNT; sourceTree = BUILT_PRODUCTS_DIR; };
-		73B409051ED14BC9000197ED /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		73B4090C1ED14C31000197ED /* LoadIrisDataSet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = LoadIrisDataSet.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		73B4090D1ED14C31000197ED /* LoadIrisDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = LoadIrisDataSet.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		73B4090F1ED14DF7000197ED /* Memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = Memory.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		73B409101ED14DF7000197ED /* Memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = Memory.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		73B409151ED19FE6000197ED /* Utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = Utils.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		73B409161ED19FE6000197ED /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +64,34 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7332085B1F14D62C00B4611F /* src */ = {
+			isa = PBXGroup;
+			children = (
+				7332086B1F14D67900B4611F /* Makefile */,
+				7332085D1F14D66700B4611F /* LoadIrisDataSet.c */,
+				7332085E1F14D66700B4611F /* main.c */,
+				7332085F1F14D66700B4611F /* Memory.c */,
+				733208601F14D66700B4611F /* NeuralNetwork.c */,
+				733208611F14D66700B4611F /* OpenCLUtils.c */,
+				733208621F14D66700B4611F /* TimeProfile.c */,
+				733208631F14D66700B4611F /* Utils.c */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
+		7332085C1F14D63600B4611F /* include */ = {
+			isa = PBXGroup;
+			children = (
+				7332086D1F14D68700B4611F /* LoadIrisDataSet.h */,
+				7332086E1F14D68700B4611F /* Memory.h */,
+				7332086F1F14D68700B4611F /* NeuralNetwork.h */,
+				733208701F14D68700B4611F /* OpenCLUtils.h */,
+				733208711F14D68700B4611F /* TimeProfile.h */,
+				733208721F14D68700B4611F /* Utils.h */,
+			);
+			name = include;
+			sourceTree = "<group>";
+		};
 		7371ACCC1ED32CA900E291B6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -79,7 +105,8 @@
 			isa = PBXGroup;
 			children = (
 				733208581F14CEA600B4611F /* README.md */,
-				73B409041ED14BC9000197ED /* FeedforwardNT */,
+				7332085C1F14D63600B4611F /* include */,
+				7332085B1F14D62C00B4611F /* src */,
 				73B409031ED14BC9000197ED /* Products */,
 				7371ACCC1ED32CA900E291B6 /* Frameworks */,
 			);
@@ -91,28 +118,6 @@
 				73B409021ED14BC9000197ED /* FeedforwardNT */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		73B409041ED14BC9000197ED /* FeedforwardNT */ = {
-			isa = PBXGroup;
-			children = (
-				7371ACF21ED7D42500E291B6 /* Makefile */,
-				73B409051ED14BC9000197ED /* main.c */,
-				7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */,
-				7371ACFA1EDEB84B00E291B6 /* NeuralNetwork.h */,
-				73B4090C1ED14C31000197ED /* LoadIrisDataSet.c */,
-				73B4090D1ED14C31000197ED /* LoadIrisDataSet.h */,
-				73B4090F1ED14DF7000197ED /* Memory.c */,
-				73B409101ED14DF7000197ED /* Memory.h */,
-				73B409151ED19FE6000197ED /* Utils.c */,
-				73B409161ED19FE6000197ED /* Utils.h */,
-				7371ACF31ED9D60900E291B6 /* TimeProfile.c */,
-				7371ACF41ED9D60900E291B6 /* TimeProfile.h */,
-				7371AD0F1EEBF48300E291B6 /* OpenCLUtils.c */,
-				7371AD101EEBF48300E291B6 /* OpenCLUtils.h */,
-				7371AD151EEEAFEC00E291B6 /* inference.cl */,
-			);
-			path = FeedforwardNT;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -173,14 +178,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7371ACFB1EDEB84B00E291B6 /* NeuralNetwork.c in Sources */,
-				73B409061ED14BC9000197ED /* main.c in Sources */,
-				73B409111ED14DF7000197ED /* Memory.c in Sources */,
-				7371ACF51ED9D60900E291B6 /* TimeProfile.c in Sources */,
-				73B4090E1ED14C31000197ED /* LoadIrisDataSet.c in Sources */,
-				7371AD111EEBF48300E291B6 /* OpenCLUtils.c in Sources */,
-				733208591F14CEA600B4611F /* README.md in Sources */,
-				73B409171ED19FE6000197ED /* Utils.c in Sources */,
+				733208651F14D66700B4611F /* main.c in Sources */,
+				733208671F14D66700B4611F /* NeuralNetwork.c in Sources */,
+				733208691F14D66700B4611F /* TimeProfile.c in Sources */,
+				7332086A1F14D66700B4611F /* Utils.c in Sources */,
+				733208641F14D66700B4611F /* LoadIrisDataSet.c in Sources */,
+				733208681F14D66700B4611F /* OpenCLUtils.c in Sources */,
+				733208661F14D66700B4611F /* Memory.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
