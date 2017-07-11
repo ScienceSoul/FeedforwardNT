@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		733208591F14CEA600B4611F /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 733208581F14CEA600B4611F /* README.md */; };
 		7371ACCE1ED32CA900E291B6 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7371ACCD1ED32CA900E291B6 /* Accelerate.framework */; };
 		7371ACF51ED9D60900E291B6 /* TimeProfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 7371ACF31ED9D60900E291B6 /* TimeProfile.c */; };
 		7371ACFB1EDEB84B00E291B6 /* NeuralNetwork.c in Sources */ = {isa = PBXBuildFile; fileRef = 7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */; };
@@ -31,7 +32,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		733208551F14C97100B4611F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = FeedforwardNT/README.md; sourceTree = "<group>"; };
+		733208581F14CEA600B4611F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7371ACCD1ED32CA900E291B6 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		7371ACF21ED7D42500E291B6 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		7371ACF31ED9D60900E291B6 /* TimeProfile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TimeProfile.c; sourceTree = "<group>"; };
@@ -77,7 +78,7 @@
 		73B408F91ED14BC9000197ED = {
 			isa = PBXGroup;
 			children = (
-				733208551F14C97100B4611F /* README.md */,
+				733208581F14CEA600B4611F /* README.md */,
 				73B409041ED14BC9000197ED /* FeedforwardNT */,
 				73B409031ED14BC9000197ED /* Products */,
 				7371ACCC1ED32CA900E291B6 /* Frameworks */,
@@ -178,6 +179,7 @@
 				7371ACF51ED9D60900E291B6 /* TimeProfile.c in Sources */,
 				73B4090E1ED14C31000197ED /* LoadIrisDataSet.c in Sources */,
 				7371AD111EEBF48300E291B6 /* OpenCLUtils.c in Sources */,
+				733208591F14CEA600B4611F /* README.md in Sources */,
 				73B409171ED19FE6000197ED /* Utils.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
