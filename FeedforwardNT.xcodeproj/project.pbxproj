@@ -31,7 +31,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		733208551F14C97100B4611F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		733208551F14C97100B4611F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = FeedforwardNT/README.md; sourceTree = "<group>"; };
 		7371ACCD1ED32CA900E291B6 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		7371ACF21ED7D42500E291B6 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		7371ACF31ED9D60900E291B6 /* TimeProfile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TimeProfile.c; sourceTree = "<group>"; };
@@ -77,6 +77,7 @@
 		73B408F91ED14BC9000197ED = {
 			isa = PBXGroup;
 			children = (
+				733208551F14C97100B4611F /* README.md */,
 				73B409041ED14BC9000197ED /* FeedforwardNT */,
 				73B409031ED14BC9000197ED /* Products */,
 				7371ACCC1ED32CA900E291B6 /* Frameworks */,
@@ -94,7 +95,6 @@
 		73B409041ED14BC9000197ED /* FeedforwardNT */ = {
 			isa = PBXGroup;
 			children = (
-				733208551F14C97100B4611F /* README.md */,
 				7371ACF21ED7D42500E291B6 /* Makefile */,
 				73B409051ED14BC9000197ED /* main.c */,
 				7371ACF91EDEB84B00E291B6 /* NeuralNetwork.c */,
