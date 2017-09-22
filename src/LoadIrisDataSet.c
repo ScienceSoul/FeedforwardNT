@@ -25,7 +25,7 @@ float **readFile(const char * _Nonnull file, size_t * _Nonnull len) {
         }
     }
     while (!feof(f1));
-    fprintf(stdout, "FeedforwardNT: number of inputs in iris data set: %d.\n", inputs);
+    fprintf(stdout, "%s: number of inputs in iris data set: %d.\n", PROGRAM_NAME, inputs);
     rewind(f1);
 
     // Allocate some buffers
@@ -36,7 +36,7 @@ float **readFile(const char * _Nonnull file, size_t * _Nonnull len) {
     float *data4 = floatvec(0, *len-1);
     int *data5 = intvec(0, *len-1);
     if (data1 == NULL || data2 == NULL || data3 == NULL || data4 == NULL || data5 == NULL) {
-        fatal("FeedforwardNT", "allocation error in readFile.");
+        fatal(PROGRAM_NAME, "allocation error in readFile.");
     }
     memset(data1, 0.0f, *len*sizeof(float));
     memset(data2, 0.0f, *len*sizeof(float));
@@ -87,8 +87,8 @@ float **loadIris(const char * _Nonnull file, size_t * _Nonnull len) {
     
     float **dataSet = readFile(file, len);
     if (dataSet == NULL) {
-        fatal("FeedforwardNT", "problem reading iris data set.");
-    } else fprintf(stdout, "FeedforwardNT: load iris data set.\n");
+        fatal(PROGRAM_NAME, "problem reading iris data set.");
+    } else fprintf(stdout, "%s: load iris data set.\n", PROGRAM_NAME);
     
     return dataSet;
 }

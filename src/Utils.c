@@ -79,12 +79,12 @@ void format(char * _Nullable head, char * _Nullable message, int *iValue, double
 
 int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile, int * _Nonnull ntLayers, size_t * _Nonnull numberOfLayers, int * _Nonnull dataDivisions, size_t * _Nonnull numberOfDataDivisions, int * _Nonnull classifications, size_t * _Nonnull numberOfClassifications, int * _Nonnull inoutSizes, size_t * _Nonnull numberOfInouts, int * _Nonnull epochs, int * _Nonnull miniBatchSize, float * _Nonnull eta, float * _Nonnull lambda) {
     
-    // Very basic parsing of our inpute parameters file.
+    // Very basic parsing of input parameters file.
     // TODO: Needs to change that to something more flexible and with better input validation
     
     FILE *f1 = fopen(paraFile,"r");
     if(!f1) {
-        fprintf(stdout,"FeedforwardNT: can't open the input parameters file.\n");
+        fprintf(stdout,"%s: can't open the input parameters file.\n", PROGRAM_NAME);
         return -1;
     }
     
@@ -94,7 +94,7 @@ int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, 
         fscanf(f1,"%s\n", string);
         
         if (lineCount == 1 && string[0] != '{') {
-            fatal("FeedforwardNT", "syntax error in the file for the input parameters.");
+            fatal(PROGRAM_NAME, "syntax error in the file for the input parameters.");
         } else if (lineCount == 1) {
             lineCount++;
             continue;
@@ -136,15 +136,15 @@ int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, 
     } while (string[0] != '}');
     
     if (*numberOfDataDivisions != 2) {
-        fprintf(stdout,"FeedforwardNT: input data set should only be divided in two parts: one for training, one for testing.\n");
+        fprintf(stdout,"%s: input data set should only be divided in two parts: one for training, one for testing.\n", PROGRAM_NAME);
         return -1;
     }
     if (*numberOfInouts != 2) {
-        fprintf(stdout,"FeedforwardNT: only define one size for inputs and one size for outputs.\n");
+        fprintf(stdout,"%s: only define one size for inputs and one size for outputs.\n", PROGRAM_NAME);
         return -1;
     }
     if (inoutSizes[1] < *numberOfClassifications || inoutSizes[1] > *numberOfClassifications) {
-        fprintf(stdout,"FeedforwardNT: mismatch between number of classifications and the number of outputs.\n");
+        fprintf(stdout,"%s: mismatch between number of classifications and the number of outputs.\n", PROGRAM_NAME);
         return -1;
     }
     
@@ -163,7 +163,7 @@ float **loadData(const char * _Nonnull dataSetName, const char * _Nonnull fileNa
         // Shuffle the original data set
         shuffle(dataSet, *len1, *len2);
     } else {
-        fatal("FeedforwardNT", "training the network without anything else than the iris data set is not yet supported.");
+        fatal(PROGRAM_NAME, "training the network without anything else than the iris data set is not yet supported.");
     }
     return dataSet;
 }
@@ -177,7 +177,7 @@ float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSe
     *t2 = inoutSizes[0]+inoutSizes[1];
     
     if (inoutSizes[1] != numberOfClassifications) {
-        fatal("FeedforwardNT", "the number of classifications should be equal to the number of activations.");
+        fatal(PROGRAM_NAME, "the number of classifications should be equal to the number of activations.");
     }
     
     for (int i=0; i<end; i++) {
@@ -242,19 +242,19 @@ void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumen
     int idx = 0;
     *numberOfItems = 0;
     
-    fprintf(stdout, "FeedforwardNT: parsing the parameter %s: %s.\n", argumentName, argument);
+    fprintf(stdout, "%s: parsing the parameter %s: %s.\n", PROGRAM_NAME, argumentName, argument);
     
     size_t len = strlen(argument);
-    if (argument[0] != '{' || argument[len-1] != '}') fatal("FeedforwardNT", "mput argument for network definition should start with <{> and end with <}>.");
+    if (argument[0] != '{' || argument[len-1] != '}') fatal(PROGRAM_NAME, "input argument for network definition should start with <{> and end with <}>.");
     
     while (argument[idx] != '}') {
         if (argument[idx] == '{') {
-            if (argument[idx +1] == ',' || argument[idx +1] == '{') fatal("FeedforwardNT", "syntax error <{,> or <{{> in imput argument for network definition.");
+            if (argument[idx+1] == ',' || argument[idx+1] == '{') fatal(PROGRAM_NAME, "syntax error <{,> or <{{> in imput argument for network definition.");
             idx++;
             continue;
         }
         if (argument[idx] == ',') {
-            if (argument[idx +1] == '}' || argument[idx +1] == ',') fatal("FeedforwardNT", "syntax error <,}> or <,,> in imput argument for network definition.");
+            if (argument[idx+1] == '}' || argument[idx+1] == ',') fatal(PROGRAM_NAME, "syntax error <,}> or <,,> in imput argument for network definition.");
             (*numberOfItems)++;
             idx++;
             continue;

@@ -86,25 +86,25 @@ static gpuInference * _Nonnull initGPUInferenceStore(GPUCompute *compute, weight
     inferenceList->W = clCreateBuffer(compute->context, CL_MEM_READ_ONLY, (inferenceList->m*inferenceList->n)*sizeof(float),
                                   NULL, &err);
     if(err < 0) {
-        fatal("FeedforwardNT", "problem creating GPU buffer for weights.");
+        fatal(PROGRAM_NAME, "problem creating GPU buffer for weights.");
     };
     
     inferenceList->A = clCreateBuffer(compute->context, CL_MEM_READ_ONLY, inferenceList->n*sizeof(float),
                                   NULL, &err);
     if(err < 0) {
-        fatal("FeedforwardNT", "problem creating GPU buffer for activations.");
+        fatal(PROGRAM_NAME, "problem creating GPU buffer for activations.");
     };
     
     inferenceList->B = clCreateBuffer(compute->context, CL_MEM_READ_ONLY, inferenceList->m*sizeof(float),
                                   NULL, &err);
     if(err < 0) {
-        fatal("FeedforwardNT", "problem creating GPU buffer for biases.");
+        fatal(PROGRAM_NAME, "problem creating GPU buffer for biases.");
     };
     
     inferenceList->Z = clCreateBuffer(compute->context, CL_MEM_WRITE_ONLY, inferenceList->m*sizeof(float),
                                   NULL, &err);
     if(err < 0) {
-        fatal("FeedforwardNT", "problem creating GPU buffer for sgemv result vector.");
+        fatal(PROGRAM_NAME, "problem creating GPU buffer for sgemv result vector.");
     };
     
     // The rest of the list
@@ -120,25 +120,25 @@ static gpuInference * _Nonnull initGPUInferenceStore(GPUCompute *compute, weight
         newNode->W = clCreateBuffer(compute->context, CL_MEM_READ_ONLY, (newNode->m*newNode->n)*sizeof(float),
                                     NULL, &err);
         if(err < 0) {
-            fatal("FeedforwardNT", "problem creating GPU buffer for weights.");
+            fatal(PROGRAM_NAME, "problem creating GPU buffer for weights.");
         };
         
         newNode->A = clCreateBuffer(compute->context, CL_MEM_READ_ONLY, newNode->n*sizeof(float),
                                     NULL, &err);
         if(err < 0) {
-            fatal("FeedforwardNT", "problem creating GPU buffer for activations.");
+            fatal(PROGRAM_NAME, "problem creating GPU buffer for activations.");
         };
         
         newNode->B = clCreateBuffer(compute->context, CL_MEM_READ_ONLY, newNode->m*sizeof(float),
                                     NULL, &err);
         if(err < 0) {
-            fatal("FeedforwardNT", "problem creating GPU buffer for biases");
+            fatal(PROGRAM_NAME, "problem creating GPU buffer for biases");
         };
         
         newNode->Z = clCreateBuffer(compute->context, CL_MEM_WRITE_ONLY, newNode->m*sizeof(float),
                                     NULL, &err);
         if(err < 0) {
-            fatal("FeedforwardNT", "problem creating GPU buffer for sgemv result vector.");
+            fatal(PROGRAM_NAME, "problem creating GPU buffer for sgemv result vector.");
         };
 
         newNode->previous = inferenceNodePt;
@@ -153,7 +153,7 @@ static gpuInference * _Nonnull initGPUInferenceStore(GPUCompute *compute, weight
     while (inferenceNodePt != NULL) {
         inferenceNodePt->kernel = clCreateKernel(compute->program, "inference", &err);
         if (err < 0) {
-            fatal("FeedforwardNT", "can't create kernel < sgemv >. Error: ", err);
+            fatal(PROGRAM_NAME, "can't create kernel < sgemv >. Error: ", err);
         }
         
         err  = clSetKernelArg(inferenceNodePt->kernel, 0, sizeof(cl_int),   &inferenceNodePt->m);
@@ -163,7 +163,7 @@ static gpuInference * _Nonnull initGPUInferenceStore(GPUCompute *compute, weight
         err |= clSetKernelArg(inferenceNodePt->kernel, 4, sizeof(cl_mem),   &inferenceNodePt->B);
         err |= clSetKernelArg(inferenceNodePt->kernel, 5, sizeof(cl_mem),   &inferenceNodePt->Z);
         if(err < 0) {
-            fatal("FeedforwardNT", "couldn't set an argument for the sgemv kernel.");
+            fatal(PROGRAM_NAME, "couldn't set an argument for the sgemv kernel.");
         };
         inferenceNodePt = inferenceNodePt->next;
     }
@@ -186,12 +186,12 @@ static void setUpOpenCLDevice(GPUCompute *compute) {
     size_t src_len;
     
     compute->device = find_single_device();
-    fprintf(stdout, "FeedforwardNT: GPU info: \n");
+    fprintf(stdout, "%s: GPU info: \n", PROGRAM_NAME);
     device_info(compute->device);
     
     compute->context = clCreateContext(0, 1, &compute->device, NULL, NULL, &err);
     if (err < 0) {
-        fatal("FeedforwardNT", "can't create context for device. Error: ", err);
+        fatal(PROGRAM_NAME, "can't create context for device. Error: ", err);
     }
     compute->queue = clCreateCommandQueue(compute->context, compute->device, CL_QUEUE_PROFILING_ENABLE, NULL);
     
@@ -199,7 +199,7 @@ static void setUpOpenCLDevice(GPUCompute *compute) {
     if (success < 0) {
         success = LoadFileIntoString(OPENCL_PROGRAM_FILE_LOC2, &kernel_source, &src_len);
         if (success < 0) {
-            fatal("FeedforwardNT", "can't load kernel source.");
+            fatal(PROGRAM_NAME, "can't load kernel source.");
         }
     }
     
@@ -207,12 +207,12 @@ static void setUpOpenCLDevice(GPUCompute *compute) {
     
     compute->program = clCreateProgramWithSource(compute->context, 1, (const char**)&kernel_source, NULL, &err);
     if (err < 0) {
-        fatal("FeedforwardNT", "can't create program. Error: ", err);
+        fatal(PROGRAM_NAME, "can't create program. Error: ", err);
     }
     
 
     const char *options = "-cl-mad-enable -cl-denorms-are-zero -cl-fast-relaxed-math";
-    fprintf(stdout, "FeedforwardNT: build GPU program...\n");
+    fprintf(stdout, "%s: build GPU program...\n", PROGRAM_NAME);
     err = clBuildProgram(compute->program, 1, &compute->device, options, NULL, &err);
     if (err < 0) {
         size_t log_size;
@@ -220,12 +220,12 @@ static void setUpOpenCLDevice(GPUCompute *compute) {
         char *program_log = (char *)malloc(log_size+1);
         program_log[log_size] = '\0';
         clGetProgramBuildInfo(compute->program, compute->device, CL_PROGRAM_BUILD_LOG, log_size+1, program_log, NULL);
-        fprintf(stderr, "FeedforwardNT: error when buiding the GPU kernel.\n");
-        fprintf(stderr, "FeedforwardNT: log: %s\n", program_log);
+        fprintf(stderr, "%s: error when buiding the GPU kernel.\n", PROGRAM_NAME);
+        fprintf(stderr, "%s: log: %s\n", PROGRAM_NAME, program_log);
         free(program_log);
-        fatal("FeedforwardNT");
+        fatal(PROGRAM_NAME);
     }
-    fprintf(stdout, "FeedforwardNT: done.\n");
+    fprintf(stdout, "%s: done.\n", PROGRAM_NAME);
 }
 
 void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore) {
@@ -239,13 +239,13 @@ void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore) 
     err = clEnqueueNDRangeKernel(compute->queue, gpuInferenceStore->kernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
 #ifdef DEBUG
     if(err < 0) {
-        fatal("FeedforwardNT", "couldn't enqueue the kernel.");
+        fatal(PROGRAM_NAME, "couldn't enqueue the kernel.");
     }
 #endif
     err = clFinish(compute->queue);
 #ifdef DEBUG
     if (err < 0) {
-        fatal("FeedforwardNT", "can't finish kernel. Error: ", err);
+        fatal(PROGRAM_NAME, "can't finish kernel. Error: ", err);
     }
 #endif
 }
@@ -564,7 +564,7 @@ void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers
     
     if (pthread) {
         if (miniBatchSize == NULL) {
-            fatal("FeedforwardNT", "mini batch size is NULL in network creation.");
+            fatal(PROGRAM_NAME, "mini batch size is NULL in network creation.");
         }
         nn->threadDataPt = (pthreadBatchNode **)malloc(*miniBatchSize * sizeof(pthreadBatchNode *));
         nn->threadTID = (pthread_t *)malloc(*miniBatchSize * sizeof(pthread_t));
@@ -603,7 +603,7 @@ void destroy(void * _Nonnull self, int * _Nullable miniBatchSize, bool pthread) 
     
     if (pthread) {
         if (miniBatchSize == NULL) {
-            fatal("FeedforwardNT", "mini batch size is NULL in network destruction.");
+            fatal(PROGRAM_NAME, "mini batch size is NULL in network destruction.");
         }
         for (int i=0; i<*miniBatchSize; i++) {
             pthreadBatchNode *node = nn->threadDataPt[i];
@@ -854,7 +854,7 @@ void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float *
         delta = 0;
         shuffle(trainingData, tr1, tr2);
         
-        fprintf(stdout, "FeedforwardNT: Epoch {%d/%d}:\n", k, epochs);
+        fprintf(stdout, "%s: Epoch {%d/%d}:\n", PROGRAM_NAME, k, epochs);
         double rt = realtime();
         for (int l=1; l<=tr1/miniBatchSize; l++) {
             memcpy(*miniBatch, *trainingData+delta, (miniBatchSize*tr2)*sizeof(float));
@@ -866,12 +866,12 @@ void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float *
             delta = delta + ((int)miniBatchSize*(int)tr2);
         }
         rt = realtime() -  rt;
-        fprintf(stdout, "FeedforwardNT: time to complete all training data set (s): %f\n", rt);
+        fprintf(stdout, "%s: time to complete all training data set (s): %f\n", PROGRAM_NAME, rt);
         
         if (testData != NULL) {
-            fprintf(stdout, "FeedforwardNT: Epoch {%d/%d}: testing network with {%zu} inputs:\n", k, epochs, *ts1);
+            fprintf(stdout, "%s: Epoch {%d/%d}: testing network with {%zu} inputs:\n", PROGRAM_NAME, k, epochs, *ts1);
             int result = nn->evaluate(self, testData, *ts1, inoutSizes);
-            fprintf(stdout, "FeedforwardNT: Epoch {%d/%d}: {%d} / {%zu}.\n", k, epochs, result, *ts1);
+            fprintf(stdout, "%s: Epoch {%d/%d}: {%d} / {%zu}.\n", PROGRAM_NAME, k, epochs, result, *ts1);
         }
         
         if (showTotalCost != NULL) {
@@ -879,13 +879,13 @@ void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float *
                 double rt = realtime();
                 float cost = nn->totalCost(self, trainingData, tr1, inoutSizes, NULL, lambda, false);
                 rt = realtime() -  rt;
-                fprintf(stdout, "FeedforwardNT: cost on training data: {%f} / Time (s): %f\n", cost, rt);
+                fprintf(stdout, "%s: cost on training data: {%f} / Time (s): %f\n", PROGRAM_NAME, cost, rt);
                 
                 if (testData != NULL) {
                     double rt = realtime();
                     cost = nn->totalCost(self, testData, *ts1, inoutSizes, classifications, lambda, true);
                     rt = realtime() -  rt;
-                    fprintf(stdout, "FeedforwardNT: cost on test data: {%f} / Time (s): %f\n", cost, rt);
+                    fprintf(stdout, "%s: cost on test data: {%f} / Time (s): %f\n", PROGRAM_NAME, cost, rt);
                 }
             }
         }
@@ -939,7 +939,7 @@ void updateMiniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch
         nn->accumulateFromThreads((void *)nn, miniBatchSize, multiThreadedBatch);
     }
     rt = realtime() - rt;
-    fprintf(stdout, "FeedforwardNT: time to complete a single mini-batch (s): %f\n", rt);
+    fprintf(stdout, "%s: time to complete a single mini-batch (s): %f\n", PROGRAM_NAME, rt);
     
     
     nn->updateWeightsBiases((void *)nn, miniBatchSize, tr1, eta, lambda);
@@ -984,7 +984,7 @@ void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, fl
         if (inferenceNodePt->W != NULL) {
             void *_mapped_W = clEnqueueMapBuffer(nn->compute->queue, inferenceNodePt->W, CL_TRUE, CL_MAP_WRITE, 0, (inferenceNodePt->m*inferenceNodePt->n)*sizeof(float), 0, NULL, NULL, &err);
             if (err < 0) {
-                fatal("FeedforwardNT", "couldn't map weights buffer from GPU.");
+                fatal(PROGRAM_NAME, "couldn't map weights buffer from GPU.");
             }
             float *buffer = _mapped_W;
             memcpy(buffer, *wNodePt->w, (wNodePt->m*wNodePt->n)*sizeof(float));
@@ -993,7 +993,7 @@ void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, fl
         if (inferenceNodePt->B != NULL) {
             void *_mapped_B = clEnqueueMapBuffer(nn->compute->queue, inferenceNodePt->B, CL_TRUE, CL_MAP_WRITE, 0, inferenceNodePt->m*sizeof(float), 0, NULL, NULL, &err);
             if (err < 0) {
-                fatal("FeedforwardNT", "couldn't map biases buffer from GPU.");
+                fatal(PROGRAM_NAME, "couldn't map biases buffer from GPU.");
             }
             float *buffer = _mapped_B;
             memcpy(buffer, bNodePt->b, bNodePt->n*sizeof(float));
@@ -1174,7 +1174,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
         gpuInference *inferenceNodePt = nn->compute->gpuInferenceStore;
         void *_mapped_A = clEnqueueMapBuffer(nn->compute->queue, inferenceNodePt->A, CL_TRUE, CL_MAP_WRITE, 0, inferenceNodePt->n*sizeof(float), 0, NULL, NULL, &err);
         if (err < 0) {
-            fatal("FeedforwardNT", "couldn't map result buffer from GPU.");
+            fatal(PROGRAM_NAME, "couldn't map result buffer from GPU.");
         }
         float *buffer = _mapped_A;
         for (int i=0; i<inoutSizes[0]; i++) {
@@ -1190,7 +1190,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
         double rt = realtime();
         nn->feedforward(self);
         rt = realtime() -  rt;
-        fprintf(stdout, "FeedforwardNT: time to infer in evaluation (s): %f\n", rt);
+        fprintf(stdout, "%s: time to infer in evaluation (s): %f\n", PROGRAM_NAME, rt);
         aNodePt = nn->activationsList;
         while (aNodePt != NULL && aNodePt->next != NULL) {
             aNodePt = aNodePt->next;
@@ -1202,7 +1202,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
         }
         void *_mapped_Z = clEnqueueMapBuffer(nn->compute->queue, inferenceNodePt->Z, CL_TRUE, CL_MAP_READ, 0, inferenceNodePt->m*sizeof(float), 0, NULL, NULL, &err);
         if (err < 0) {
-            fatal("FeedforwardNT", "couldn't map result buffer from GPU.");
+            fatal(PROGRAM_NAME, "couldn't map result buffer from GPU.");
         }
         buffer = _mapped_Z;
         memcpy(aNodePt->a, buffer, aNodePt->n*sizeof(float));
@@ -1233,7 +1233,7 @@ float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m
         gpuInference *inferenceNodePt = nn->compute->gpuInferenceStore;
         void *_mapped_A = clEnqueueMapBuffer(nn->compute->queue, inferenceNodePt->A, CL_TRUE, CL_MAP_WRITE, 0, inferenceNodePt->n*sizeof(float), 0, NULL, NULL, &err);
         if (err < 0) {
-            fatal("FeedforwardNT", "couldn't map result buffer from GPU.");
+            fatal(PROGRAM_NAME, "couldn't map result buffer from GPU.");
         }
         float *buffer = _mapped_A;
         for (int j=0; j<inoutSizes[0]; j++) {
@@ -1258,7 +1258,7 @@ float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m
         }
         void *_mapped_Z = clEnqueueMapBuffer(nn->compute->queue, inferenceNodePt->Z, CL_TRUE, CL_MAP_READ, 0, inferenceNodePt->m*sizeof(float), 0, NULL, NULL, &err);
         if (err < 0) {
-            fatal("FeedforwardNT", "couldn't map result buffer from GPU.");
+            fatal(PROGRAM_NAME, "couldn't map result buffer from GPU.");
         }
         buffer = _mapped_Z;
         memcpy(aNodePt->a, buffer, aNodePt->n*sizeof(float));
@@ -1312,7 +1312,7 @@ void __attribute__((overloadable)) feedforward(void * _Nonnull self) {
             err = clEnqueueCopyBuffer(nn->compute->queue, inferenceNodePt->Z, inferenceNodePt->next->A, 0, 0, inferenceNodePt->next->n*sizeof(float), 0, NULL, NULL);
     #ifdef DEBUG
             if(err < 0) {
-                fatal("FeedforwardNT", "couldn't enqueue the buffer copy.");
+                fatal(PROGRAM_NAME, "couldn't enqueue the buffer copy.");
             }
     #endif
         }

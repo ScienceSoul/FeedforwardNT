@@ -19,6 +19,8 @@
 
 #endif /* Utils_h */
 
+#define PROGRAM_NAME "FeedforwardNT"
+
 void __attribute__((overloadable)) fatal(char head[_Nonnull]);
 void __attribute__((overloadable)) fatal(char head[_Nonnull], char message[_Nonnull]);
 void __attribute__((overloadable)) fatal(char head[_Nonnull], char message[_Nonnull], int n);

@@ -21,10 +21,10 @@ int main(int argc, const char * argv[]) {
     size_t numberOfLayers=0, numberOfDataDivisions=0, numberOfClassifications=0, numberOfInouts=0;
     
     if (argc < 2) {
-        fatal("FeedforwardNT", "missing argument for the input parameters file.");
+        fatal(PROGRAM_NAME, "missing argument for the input parameters file.");
     }
     
-    fprintf(stdout, "FeedforwardNT: start....\n");
+    fprintf(stdout, "%s: start....\n", PROGRAM_NAME);
     
     bool pthread = false;
     if (argc == 3) {
@@ -33,7 +33,7 @@ int main(int argc, const char * argv[]) {
         }
     }
     if (pthread) {
-        fprintf(stdout, "FeedforwardNT: multithreaded batch active.\n");
+        fprintf(stdout, "%s: multithreaded batch active.\n", PROGRAM_NAME);
     }
     
     memset(dataSetName, 0, sizeof(dataSetName));
@@ -44,11 +44,11 @@ int main(int argc, const char * argv[]) {
     memset(classifications, 0, sizeof(classifications));
     memset(inoutSizes, 0, sizeof(inoutSizes));
     
-    fprintf(stdout, "FeedforwardNT: load input parameters:\n");
+    fprintf(stdout, "%s: load input parameters:\n", PROGRAM_NAME);
     if (loadParameters(argv[1], dataSetName, dataSetFile, ntLayers, &numberOfLayers, dataDivisions, &numberOfDataDivisions, classifications, &numberOfClassifications, inoutSizes, &numberOfInouts, &epochs, &miniBatchSize, &eta, &lambda) != 0) {
-        fatal("FeedforwardNT", "failure reading input parameters.");
+        fatal(PROGRAM_NAME, "failure reading input parameters.");
     }
-    fprintf(stdout, "FeedforwardNT: done.\n");
+    fprintf(stdout, "%s: done.\n", PROGRAM_NAME);
     
     dataSet = loadData(dataSetName, dataSetFile, &len1, &len2);
     
@@ -59,11 +59,11 @@ int main(int argc, const char * argv[]) {
     NeuralNetwork *neural = allocateNeuralNetwork();
     neural->create((void *)neural, ntLayers, numberOfLayers, &miniBatchSize, pthread);
     
-    fprintf(stdout, "FeedforwardNT: train neural network with the %s data set.\n", dataSetName);
+    fprintf(stdout, "%s: train neural network with the %s data set.\n", PROGRAM_NAME, dataSetName);
     bool showCost = true;
     neural->SDG((void *)neural, trainingData, testData, tr1, tr2, &ts1, &ts2, ntLayers, numberOfLayers, inoutSizes, classifications, epochs, miniBatchSize, eta, lambda, pthread, &showCost);
     neural->destroy((void *)neural, &miniBatchSize, pthread);
-    fprintf(stdout, "FeedforwardNT: all done.\n");
+    fprintf(stdout, "%s: all done.\n", PROGRAM_NAME);
     
     free(neural);
     free_fmatrix(trainingData, 0, tr1-1, 0, tr2-1);
