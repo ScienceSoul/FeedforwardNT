@@ -90,7 +90,8 @@ int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, 
     
     char string[256];
     int lineCount = 1;
-    do {
+    int empty = 0;
+    while (1) {
         fscanf(f1,"%s\n", string);
         
         if (lineCount == 1 && string[0] != '{') {
@@ -98,9 +99,16 @@ int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, 
         } else if (lineCount == 1) {
             lineCount++;
             continue;
-        };
+        } else if(string[0] == '\0') {
+            empty++;
+            if (empty > 1000) {
+                fatal(PROGRAM_NAME, "syntax error in the file for the input keys. File should end with <}>.");
+            }
+            continue;
+        }
         
-        if (string[0] == '!') continue;
+        if (string[0] == '!') continue; // Comment line
+        if (string[0] == '}') break;    // End of file
         
         if (lineCount == 2) {
             memcpy(dataSetName, string, strlen(string)*sizeof(char));
@@ -133,7 +141,7 @@ int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, 
             *lambda = strtof(string, NULL);
         }
         lineCount++;
-    } while (string[0] != '}');
+    }
     
     if (*numberOfDataDivisions != 2) {
         fprintf(stdout,"%s: input data set should only be divided in two parts: one for training, one for testing.\n", PROGRAM_NAME);
