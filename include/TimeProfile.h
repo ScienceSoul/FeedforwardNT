@@ -13,6 +13,6 @@
 
 #endif /* TimeProfile_h */
 
-double cputime();
-double realtime();
-double cpumemory();
+double cputime(void);
+double realtime(void);
+double cpumemory(void);
