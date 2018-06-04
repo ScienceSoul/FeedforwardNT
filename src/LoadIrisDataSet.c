@@ -8,7 +8,7 @@
 #include "Memory.h"
 #include "LoadIrisDataSet.h"
 
-float **readFile(const char * _Nonnull file, size_t * _Nonnull len) {
+float * _Nullable * _Nullable readFile(const char * _Nonnull file, size_t * _Nonnull len) {
     
     FILE *f1 = fopen(file,"r");
     if(!f1) {
@@ -64,7 +64,7 @@ float **readFile(const char * _Nonnull file, size_t * _Nonnull len) {
     while (!feof(f1));
     fclose(f1);
     
-    // Return a matrix of the data set
+    // Return a design matrix of the data set
     float **dataSet = floatmatrix(0, *len-1, 0, 5-1);
     memset(*dataSet, 0.0f, (*len*5)*sizeof(float));
     for (int i=0; i<*len; i++) {
@@ -83,7 +83,7 @@ float **readFile(const char * _Nonnull file, size_t * _Nonnull len) {
     return dataSet;
 }
 
-float **loadIris(const char * _Nonnull file, size_t * _Nonnull len) {
+float * _Nonnull * _Nonnull loadIris(const char * _Nonnull file, size_t * _Nonnull len) {
     
     float **dataSet = readFile(file, len);
     if (dataSet == NULL) {

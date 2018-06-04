@@ -32,6 +32,7 @@ void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_No
 int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile, int * _Nonnull ntLayers, size_t * _Nonnull numberOfLayers, int * _Nonnull dataDivisions, size_t * _Nonnull numberOfDataDivisions, int * _Nonnull classifications, size_t * _Nonnull numberOfClassifications, int * _Nonnull inoutSizes, size_t * _Nonnull numberOfInouts, int * _Nonnull epochs, int * _Nonnull miniBatchSize, float * _Nonnull eta, float * _Nonnull lambda);
 
 float * _Nonnull * _Nonnull loadData(const char * _Nonnull dataSetName, const char * _Nonnull fileName, size_t * _Nonnull len1, size_t * _Nonnull len2);
+float * _Nonnull * _Nonnull loadTestData(const char * _Nonnull dataSetName, const char * _Nonnull fileName, size_t * _Nonnull len1, size_t * _Nonnull len2);
 
 float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2, int * _Nonnull classifications, size_t numberOfClassifications, int * _Nonnull inoutSizes);
 

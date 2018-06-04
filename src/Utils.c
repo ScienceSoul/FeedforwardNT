@@ -11,6 +11,7 @@
 
 #include "Utils.h"
 #include "LoadIrisDataSet.h"
+#include "LoadMNISTDataSet.h"
 #include "Memory.h"
 
 static int formatType;
@@ -144,16 +145,16 @@ int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, 
     }
     
     if (*numberOfDataDivisions != 2) {
-        fprintf(stdout,"%s: input data set should only be divided in two parts: one for training, one for testing.\n", PROGRAM_NAME);
-        return -1;
+        fatal(PROGRAM_NAME, " input data set should only be divided in two parts: one for training, one for testing.");
     }
     if (*numberOfInouts != 2) {
-        fprintf(stdout,"%s: only define one size for inputs and one size for outputs.\n", PROGRAM_NAME);
-        return -1;
+        fatal(PROGRAM_NAME, "only define one size for inputs and one size for outputs.");
+    }
+    if (ntLayers[0] != inoutSizes[0] || ntLayers[(int)(*numberOfLayers)-1] != inoutSizes[1]) {
+        fatal(PROGRAM_NAME, "mismatch between size of network first/last layer and the nunmber of inputs/outputs.");
     }
     if (inoutSizes[1] < *numberOfClassifications || inoutSizes[1] > *numberOfClassifications) {
-        fprintf(stdout,"%s: mismatch between number of classifications and the number of outputs.\n", PROGRAM_NAME);
-        return -1;
+        fatal(PROGRAM_NAME, "mismatch between number of classifications and the number of outputs.");
     }
     
     return 0;
@@ -163,16 +164,31 @@ float **loadData(const char * _Nonnull dataSetName, const char * _Nonnull fileNa
     
     float **dataSet = NULL;
     // Load data set
-    // Right now this program basically only supports the Iris data set as input hence only
-    // employs a very primitive way to parse an input data set file
-    if (strcmp(dataSetName, "iris") == 0) {
+    // Right now this program basically only supports the Iris and
+    // the MNIST datasets
+    if (strcmp(dataSetName, "iris") == 0) { // Read Iris data
+        fprintf(stdout, "%s: load the Iris training data set.\n", PROGRAM_NAME);
         dataSet = loadIris(fileName, len1);
         *len2 = 5;
         // Shuffle the original data set
         shuffle(dataSet, *len1, *len2);
+    } else if (strcmp(dataSetName, "mnist") == 0) { // Read MNIST data
+        fprintf(stdout, "%s: load the MNIST training data set...\n", PROGRAM_NAME);
+        dataSet = loadMnist(fileName, len1, len2);
+        shuffle(dataSet, *len1, *len2);
     } else {
-        fatal(PROGRAM_NAME, "training the network without anything else than the iris data set is not yet supported.");
+        fatal(PROGRAM_NAME, "training the network only supported for the Iris and the MNIST data Sets.");
     }
+    return dataSet;
+}
+
+float * _Nonnull * _Nonnull loadTestData(const char * _Nonnull dataSetName, const char * _Nonnull fileName, size_t * _Nonnull len1, size_t * _Nonnull len2) {
+    
+    float **dataSet = NULL;
+    // Load the test data set. Currently only for the MNIST dataset
+    if (strcmp(dataSetName, "mnist") != 0) fatal(PROGRAM_NAME, "can only load test data for MNIST.");
+    fprintf(stdout, "%s: load the MNIST test data set...\n", PROGRAM_NAME);
+    dataSet = loadMnistTest(fileName, len1, len2);
     return dataSet;
 }
 
@@ -198,6 +214,7 @@ float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSe
             trainingData[i][idx] = 0.0f;
             idx++;
         }
+        // Binarization of the classifications
         for (int k=0; k<numberOfClassifications; k++) {
             if (dataSet[i][inoutSizes[0]] == classifications[k]) {
                 trainingData[i][inoutSizes[0]+k] = 1.0f;

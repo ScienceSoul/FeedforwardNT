@@ -939,8 +939,9 @@ void updateMiniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch
         nn->accumulateFromThreads((void *)nn, miniBatchSize, multiThreadedBatch);
     }
     rt = realtime() - rt;
+#ifdef VERBOSE
     fprintf(stdout, "%s: time to complete a single mini-batch (s): %f\n", PROGRAM_NAME, rt);
-    
+#endif
     
     nn->updateWeightsBiases((void *)nn, miniBatchSize, tr1, eta, lambda);
 }
@@ -1190,7 +1191,9 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
         double rt = realtime();
         nn->feedforward(self);
         rt = realtime() -  rt;
+#ifdef VERBOSE
         fprintf(stdout, "%s: time to infer in evaluation (s): %f\n", PROGRAM_NAME, rt);
+#endif
         aNodePt = nn->activationsList;
         while (aNodePt != NULL && aNodePt->next != NULL) {
             aNodePt = aNodePt->next;

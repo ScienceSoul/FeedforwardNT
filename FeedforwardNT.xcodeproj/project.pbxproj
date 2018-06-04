@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01B73FA020C0E5060096F830 /* LoadMNISTDataSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */; };
 		733208641F14D66700B4611F /* LoadIrisDataSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 7332085D1F14D66700B4611F /* LoadIrisDataSet.c */; };
 		733208651F14D66700B4611F /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 7332085E1F14D66700B4611F /* main.c */; };
 		733208661F14D66700B4611F /* Memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 7332085F1F14D66700B4611F /* Memory.c */; };
@@ -31,6 +32,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		01B73F9E20C0E2FA0096F830 /* LoadMNISTDataSet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadMNISTDataSet.h; path = include/LoadMNISTDataSet.h; sourceTree = "<group>"; };
+		01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = LoadMNISTDataSet.c; path = src/LoadMNISTDataSet.c; sourceTree = "<group>"; };
 		733208581F14CEA600B4611F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7332085D1F14D66700B4611F /* LoadIrisDataSet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = LoadIrisDataSet.c; path = src/LoadIrisDataSet.c; sourceTree = "<group>"; };
 		7332085E1F14D66700B4611F /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = src/main.c; sourceTree = "<group>"; };
@@ -69,6 +72,7 @@
 			children = (
 				7332086B1F14D67900B4611F /* Makefile */,
 				7332085D1F14D66700B4611F /* LoadIrisDataSet.c */,
+				01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */,
 				7332085E1F14D66700B4611F /* main.c */,
 				7332085F1F14D66700B4611F /* Memory.c */,
 				733208601F14D66700B4611F /* NeuralNetwork.c */,
@@ -83,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				7332086D1F14D68700B4611F /* LoadIrisDataSet.h */,
+				01B73F9E20C0E2FA0096F830 /* LoadMNISTDataSet.h */,
 				7332086E1F14D68700B4611F /* Memory.h */,
 				7332086F1F14D68700B4611F /* NeuralNetwork.h */,
 				733208701F14D68700B4611F /* OpenCLUtils.h */,
@@ -146,7 +151,7 @@
 		73B408FA1ED14BC9000197ED /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = ScienceSoul;
 				TargetAttributes = {
 					73B409011ED14BC9000197ED = {
@@ -182,6 +187,7 @@
 				733208671F14D66700B4611F /* NeuralNetwork.c in Sources */,
 				733208691F14D66700B4611F /* TimeProfile.c in Sources */,
 				7332086A1F14D66700B4611F /* Utils.c in Sources */,
+				01B73FA020C0E5060096F830 /* LoadMNISTDataSet.c in Sources */,
 				733208641F14D66700B4611F /* LoadIrisDataSet.c in Sources */,
 				733208681F14D66700B4611F /* OpenCLUtils.c in Sources */,
 				733208661F14D66700B4611F /* Memory.c in Sources */,
@@ -205,6 +211,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -212,6 +219,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -259,6 +267,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -266,6 +275,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -296,10 +306,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DEVELOPMENT_TEAM = 65WT6FN4B4;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					USE_OPENCL_GPU,
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
