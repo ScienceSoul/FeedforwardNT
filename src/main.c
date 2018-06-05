@@ -43,17 +43,17 @@ int main(int argc, const char * argv[]) {
     if (argc >= 3 && argc < 4) {
         if (strcmp(argv[2], "-pthread") == 0) {
             pthread = true;
-        } else if (strcmp(argv[2], "-test_data") == 0) {
-            fatal(PROGRAM_NAME, "-test_data option given but no argument for location of test data set file present.");
+        } else if (strcmp(argv[2], "-test-data") == 0) {
+            fatal(PROGRAM_NAME, "-test-data option given but no argument for location of test data set file present.");
         } else fatal(PROGRAM_NAME, "problem in argument list. Possibly unrecognized argument.");
     } else if (argc >= 3 && argc < 5) {
         if (strcmp(argv[2], "-pthread") == 0 || strcmp(argv[3], "-pthread") == 0) {
-            fatal(PROGRAM_NAME, "-pthread and -test_data given but missing argument for location of test data set file.");
+            fatal(PROGRAM_NAME, "-pthread and -test-data given but missing argument for location of test data set file.");
         } else {
-            if (strcmp(argv[2], "-test_data") == 0 || strcmp(argv[3], "-test_data") == 0) {
-                if (strcmp(argv[2], "-test_data") == 0) {
+            if (strcmp(argv[2], "-test-data") == 0 || strcmp(argv[3], "-test-data") == 0) {
+                if (strcmp(argv[2], "-test-data") == 0) {
                     strncpy(testSetFile, argv[3], 256);
-                } else if (strcmp(argv[3], "-test_data") == 0) {
+                } else if (strcmp(argv[3], "-test-data") == 0) {
                     strncpy(testSetFile, argv[2], 256);
                 }
                 availableTestData = true;
@@ -64,9 +64,9 @@ int main(int argc, const char * argv[]) {
     } else if (argc >= 3 && argc <= 5) {
         if (strcmp(argv[2], "-pthread") == 0) {
             pthread = true;
-            if (strcmp(argv[3], "-test_data") == 0) {
+            if (strcmp(argv[3], "-test-data") == 0) {
                 strncpy(testSetFile, argv[4], 256);
-            } else if (strcmp(argv[4], "-test_data") == 0) {
+            } else if (strcmp(argv[4], "-test-data") == 0) {
                 strncpy(testSetFile, argv[3], 256);
             } else {
                 err = true;
@@ -74,9 +74,9 @@ int main(int argc, const char * argv[]) {
             if (!err) availableTestData = true;
         } else if (strcmp(argv[3], "-pthread") == 0) {
             pthread = true;
-            if (strcmp(argv[2], "-test_data") == 0) {
+            if (strcmp(argv[2], "-test-data") == 0) {
                 strncpy(testSetFile, argv[4], 256);
-            } else if (strcmp(argv[4], "-test_data") == 0) {
+            } else if (strcmp(argv[4], "-test-data") == 0) {
                 strncpy(testSetFile, argv[2], 256);
             } else {
                 err = true;
@@ -84,9 +84,9 @@ int main(int argc, const char * argv[]) {
             if (!err) availableTestData = true;
         } else if (strcmp(argv[4], "-pthread") == 0) {
             pthread = true;
-            if (strcmp(argv[2], "-test_data") == 0) {
+            if (strcmp(argv[2], "-test-data") == 0) {
                 strncpy(testSetFile, argv[3], 256);
-            } else if (strcmp(argv[3], "-test_data") == 0) {
+            } else if (strcmp(argv[3], "-test-data") == 0) {
                 strncpy(testSetFile, argv[2], 256);
             } else {
                 err = true;
