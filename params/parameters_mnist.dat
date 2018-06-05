@@ -3,7 +3,7 @@ mnist
 /Users/hakimeseddik/Desktop/MNIST/train-images-idx3-ubyte
 !
 !Netdwork!definitions
-{784,30,30,10}
+{784,30,10}
 !
 !Training!data!evaluation!test!data
 {50000,10000}
@@ -21,8 +21,8 @@ mnist
 10
 !
 !Eta
-0.25
+3.0
 !
 !Lambda
-1.0
+0.0
 }

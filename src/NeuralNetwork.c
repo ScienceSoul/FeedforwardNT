@@ -1170,7 +1170,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
-    float results[ts1];
+    float results = 0.0f;
     activationNode *aNodePt = NULL;
     
     int sum = 0;
@@ -1217,8 +1217,8 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
         clEnqueueUnmapMemObject(nn->compute->queue, inferenceNodePt->Z, _mapped_Z, 0, NULL, NULL);
 
 #endif
-        results[k] = (float)argmax(aNodePt->a, aNodePt->n);
-        sum = sum + (results[k] == testData[k][inoutSizes[0]]);
+        results = (float)argmax(aNodePt->a, aNodePt->n);
+        sum = sum + (results == testData[k][inoutSizes[0]]);
     }
     
     return sum;
