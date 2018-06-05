@@ -14,16 +14,6 @@
 
 #include "NeuralNetwork.h"
 
-#ifdef USE_OPENCL_GPU
-
-static gpuInference * _Nonnull allocateGPUInference(void);
-static GPUCompute * _Nonnull  allocateGPUCompute(void);
-static void setUpOpenCLDevice(GPUCompute *compute);
-static gpuInference * _Nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * _Nonnull weightsList, activationNode * _Nonnull activationsList, int * _Nonnull ntLayers, size_t numberOfLayers);
-void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore);
-
-#endif
-
 static weightNode * _Nonnull allocateWeightNode(void);
 static biasNode * _Nonnull allocateBiasNode(void);
 
@@ -855,18 +845,33 @@ void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float *
         shuffle(trainingData, tr1, tr2);
         
         fprintf(stdout, "%s: Epoch {%d/%d}:\n", PROGRAM_NAME, k, epochs);
-        double rt = realtime();
-        for (int l=1; l<=tr1/miniBatchSize; l++) {
+        double train_time = 0.0;
+        const int percentPrint = 5;
+        int train_size = (int)tr1/miniBatchSize;
+        int step = train_size / (100/percentPrint);
+        int nextPrint = step;
+        int i = 0;
+        for (int l=1; l<=(int)tr1/miniBatchSize; l++) {
             memcpy(*miniBatch, *trainingData+delta, (miniBatchSize*tr2)*sizeof(float));
+            double rt = realtime();
             if (pthread) {
                 nn->updateMiniBatch((void *)nn, miniBatch, miniBatchSize, ntLayers, numberOfLayers, tr1, eta, lambda, &pthread);
             } else {
                 nn->updateMiniBatch((void *)nn, miniBatch, miniBatchSize, ntLayers, numberOfLayers, tr1, eta, lambda, NULL);
             }
+            rt = realtime() - rt;
+            train_time += rt;
             delta = delta + ((int)miniBatchSize*(int)tr2);
+            
+            i++;
+            if (i >= nextPrint) {
+                int percent = (100 * i) / train_size;
+                fprintf(stdout, "...%d%%\n", percent);
+                fflush(stdout);
+                nextPrint += step;
+            }
         }
-        rt = realtime() -  rt;
-        fprintf(stdout, "%s: time to complete all training data set (s): %f\n", PROGRAM_NAME, rt);
+        fprintf(stdout, "%s: time to complete all training data set (s): %f\n", PROGRAM_NAME, train_time);
         
         if (testData != NULL) {
             fprintf(stdout, "%s: Epoch {%d/%d}: testing network with {%zu} inputs:\n", PROGRAM_NAME, k, epochs, *ts1);

@@ -48,6 +48,12 @@ typedef struct GPUCompute {
     void (* _Nullable inference)(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore);
 } GPUCompute;
 
+ gpuInference * _Nonnull allocateGPUInference(void);
+ GPUCompute * _Nonnull  allocateGPUCompute(void);
+ void setUpOpenCLDevice(GPUCompute *compute);
+ gpuInference * _Nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * _Nonnull weightsList, activationNode * _Nonnull activationsList, int * _Nonnull ntLayers, size_t numberOfLayers);
+void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore);
+
 #endif
 
 typedef struct weightNode {

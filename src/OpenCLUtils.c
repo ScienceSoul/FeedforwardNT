@@ -5,8 +5,6 @@
 //  Created by Seddik hakime on 10/06/2017.
 //
 
-#ifdef USE_OPENCL_GPU
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -175,5 +173,3 @@ int LoadFileIntoString(const char * _Nonnull filename, char * _Nonnull * _Nullab
     fclose(fh);
     return 0;
 }
-
-#endif
