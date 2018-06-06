@@ -141,7 +141,7 @@ int main(int argc, const char * argv[]) {
     if (validate != NULL)free(validate);
     
     NeuralNetwork *neural = allocateNeuralNetwork();
-    neural->create((void *)neural, ntLayers, numberOfLayers, &miniBatchSize, pthread);
+    neural->create((void *)neural, ntLayers, numberOfLayers, &miniBatchSize);
     
     fprintf(stdout, "%s: train neural network with the %s data set.\n", PROGRAM_NAME, dataSetName);
 #ifdef COMPUTE_TOTAL_COST
@@ -149,8 +149,8 @@ int main(int argc, const char * argv[]) {
 #else
     bool showCost = false;
 #endif
-    neural->SDG((void *)neural, trainingData, testData, tr1, tr2, &ts1, &ts2, ntLayers, numberOfLayers, inoutSizes, classifications, epochs, miniBatchSize, eta, lambda, pthread, &showCost);
-    neural->destroy((void *)neural, &miniBatchSize, pthread);
+    neural->SDG((void *)neural, trainingData, testData, tr1, tr2, &ts1, &ts2, ntLayers, numberOfLayers, inoutSizes, classifications, epochs, miniBatchSize, eta, lambda, &showCost);
+    neural->destroy((void *)neural);
     fprintf(stdout, "%s: all done.\n", PROGRAM_NAME);
     
     free(neural);

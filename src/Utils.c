@@ -194,7 +194,6 @@ float * _Nonnull * _Nonnull loadTestData(const char * _Nonnull dataSetName, cons
 
 float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2, int * _Nonnull classifications, size_t numberOfClassifications, int * _Nonnull inoutSizes) {
     
-    int idx;
     float **trainingData = NULL;
     trainingData = floatmatrix(0, end-1, 0, (inoutSizes[0]+inoutSizes[1])-1);
     *t1 = end;
@@ -209,16 +208,11 @@ float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSe
             trainingData[i][j] = dataSet[i][j];
         }
         
-        idx = inoutSizes[0];
-        for (int k=0; k<inoutSizes[1]; k++) {
-            trainingData[i][idx] = 0.0f;
-            idx++;
-        }
-        // Binarization of the classifications
+        // Binarization of the input ground-truth to get a one-hot-vector
         for (int k=0; k<numberOfClassifications; k++) {
-            if (dataSet[i][inoutSizes[0]] == classifications[k]) {
+            if (dataSet[i][inoutSizes[0]] == (float)classifications[k]) {
                 trainingData[i][inoutSizes[0]+k] = 1.0f;
-            }
+            } else trainingData[i][inoutSizes[0]+k] = 0.0f;
         }
     }
     
@@ -335,9 +329,33 @@ int __attribute__((overloadable)) min_array(int * _Nonnull a, size_t num_element
     return min;
 }
 
+float __attribute__((overloadable)) min_array(float * _Nonnull a, size_t num_elements) {
+    
+    float min = INT_MAX;
+    for (int i=0; i<num_elements; i++) {
+        if (a[i] < min) {
+            min = a[i];
+        }
+    }
+    
+    return min;
+}
+
 int __attribute__((overloadable)) max_array(int * _Nonnull a, size_t num_elements)
 {
     int max = -INT_MAX;
+    for (int i=0; i<num_elements; i++) {
+        if (a[i] > max) {
+            max = a[i];
+        }
+    }
+    
+    return max;
+}
+
+float __attribute__((overloadable)) max_array(float * _Nonnull a, size_t num_elements) {
+    
+    float max = -INT_MAX;
     for (int i=0; i<num_elements; i++) {
         if (a[i] > max) {
             max = a[i];

@@ -78,6 +78,12 @@ float * _Nullable * _Nullable readBinaryFile(const char * _Nonnull file, size_t 
         fprintf(stdout,"%s: number of features in each MNIST example: %d x %d\n", PROGRAM_NAME, col, row);
     } else fprintf(stdout,"%s: number of examples in MNIST test set: %d\n", PROGRAM_NAME, num);
     
+    fprintf(stdout, "---------------------------------------------------------------------\n");
+    if (!testData) {
+        fprintf(stdout, "Sample of the MNIST training data set.\n");
+    } else fprintf(stdout, "Sample of the MNIST test data set.\n");
+    fprintf(stdout, "---------------------------------------------------------------------\n");
+    
     // Return a design matrix of the data set
     *len1 = num;
     *len2 = row*col + 1; // Number of features plus the ground-truth label
@@ -86,40 +92,30 @@ float * _Nullable * _Nullable readBinaryFile(const char * _Nonnull file, size_t 
     int idx;
     for (int ex=0; ex<num; ex++) {
         idx = 0;
+        if (ex<10) printf("---\n");
         for (int i=0; i<row; i++) {
             for (int j=0; j<col; j++) {
                 unsigned char pixel;
                 fread(&pixel, 1, 1, fimage);
+                // Convert the pixel intensity value to a float
                 dataSet[ex][idx] = (float)pixel;
+                if (ex<10) {
+                    // Just show a few examples (here 10) from the dataset to check if we got the data properly
+                    // Output in hexadecimal
+                    int byte = (int)dataSet[ex][idx];
+                    printf("%02x", byte);
+                }
+                // Normalize the intensity of each pixel from [0:255] to [0.0:1:0]
+                dataSet[ex][idx] = dataSet[ex][idx] * (1.0f/255.0f);
                 idx++;
             }
+            if (ex<10) printf("\n");
         }
+        if (ex<10) printf("\n");
         unsigned char label;
         fread(&label, 1, 1, flabel);
         dataSet[ex][idx] = (float)label;
-    }
-    
-    // Just show a few examples (here 10) from the dataset to check if we got the data properly
-    // Output in hexadecimal
-    fprintf(stdout, "---------------------------------------------------------------------\n");
-    if (!testData) {
-        fprintf(stdout, "Sample of the MNIST training data set.\n");
-    } else fprintf(stdout, "Sample of the MNIST test data set.\n");
-    fprintf(stdout, "---------------------------------------------------------------------\n");
-    for (int ex=0; ex<10; ex++) {
-        printf("---\n");
-        idx = 0;
-        for (int i=0; i<row*col; i++) {
-            int byte = (int)dataSet[ex][i];
-            printf("%02x", byte);
-            idx++;
-            if (idx == col) {
-                idx = 0;
-                printf("\n");
-            }
-        }
-        printf("\n");
-        printf("label = %d\n", (int)dataSet[ex][row*col]);
+        if (ex<10) printf("label = %d\n", (int)dataSet[ex][idx]);
     }
     
     return dataSet;

@@ -32,27 +32,24 @@ static zNode * _Nonnull initZsList(int * _Nonnull ntLayers, size_t numberOfLayer
 static dcdwNode * _Nonnull initDcdwList(int * _Nonnull ntLayers, size_t numberOfLayers);
 static dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOfLayers);
 
-static pthreadBatchNode * _Nonnull allocatePthreadBatchNode(void);
+static void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nullable miniBatchSize);
+static void destroy(void * _Nonnull self);
 
-static void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nullable miniBatchSize, bool pthread);
-static void destroy(void * _Nonnull self, int * _Nullable miniBatchSize, bool pthread);
+static void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float * _Nullable * _Nullable testData, size_t tr1, size_t tr2, size_t * _Nullable ts1, size_t * _Nullable ts2, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nonnull inoutSizes, int * _Nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool * _Nullable showTotalCost);
 
-static void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float * _Nullable * _Nullable testData, size_t tr1, size_t tr2, size_t * _Nullable ts1, size_t * _Nullable ts2, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nonnull inoutSizes, int * _Nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread, bool * _Nullable showTotalCost);
-
-static void updateMiniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int miniBatchSize, int * _Nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * _Nullable pthread);
+static void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int miniBatchSize, int * _Nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda);
 
 static void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda);
 
-static void accumulateFromThreads(void * _Nonnull self, int miniBatchSize, bool pthread);
+static void batchAccumulation(void * _Nonnull self);
 
-static void * _Nullable backpropagation(void * _Nonnull node);
+static void * _Nullable backpropagation(void * _Nonnull self);
 
-static int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t ts1, int * _Nonnull inoutSizes);
+static int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t ts1);
 
-static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, int * _Nonnull inoutSizes, int * _Nullable classifications, float lambda, bool convert);
+static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, int * _Nullable classifications, float lambda, bool convert);
 
-static void __attribute__((overloadable)) feedforward(void * _Nonnull self);
-static void __attribute__((overloadable)) feedforward(pthreadBatchNode * _Nonnull node);
+static void feedforward(void * _Nonnull self);
 
 #ifdef USE_OPENCL_GPU
 
@@ -277,17 +274,6 @@ dcdbNode * _Nonnull allocateDcdbNode(void) {
     dcdbNode *list = (dcdbNode *)malloc(sizeof(dcdbNode));
     *list = (dcdbNode){.n=0, .dcdb=NULL, .next=NULL, .previous=NULL};
     return list;
-}
-
-//
-//  Allocate a single node in the batch
-//
-pthreadBatchNode * _Nonnull allocatePthreadBatchNode(void) {
-    
-    pthreadBatchNode *node = (pthreadBatchNode *)malloc(sizeof(pthreadBatchNode));
-    *node = (pthreadBatchNode){.index=0, .max=0, .batch=NULL, .weightsList=NULL, .biasesList=NULL, .activationsList=NULL, .zsList=NULL,
-        .dcdwsList=NULL, .dcdbsList=NULL, .inoutSizes=NULL};
-    return node;
 }
 
 //
@@ -516,13 +502,13 @@ NeuralNetwork * _Nonnull allocateNeuralNetwork(void) {
     
     NeuralNetwork *nn = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
     *nn = (NeuralNetwork){.weightsList=NULL, .biasesList=NULL, .activationsList=NULL, .zsList=NULL,
-                          .dcdwsList=NULL, .dcdbsList=NULL, .threadDataPt=NULL, .threadTID=NULL};
+                          .dcdwsList=NULL, .dcdbsList=NULL, .delta_dcdwsList=NULL, .delta_dcdbsList=NULL};
     nn->create = create;
     nn->destroy = destroy;
     nn->SDG = SDG;
-    nn->updateMiniBatch = updateMiniBatch;
+    nn->miniBatch = miniBatch;
     nn->updateWeightsBiases = updateWeightsBiases;
-    nn->accumulateFromThreads = accumulateFromThreads;
+    nn->batchAccumulation = batchAccumulation;
     nn->backpropagation = backpropagation;
     nn->evaluate = evaluate;
     nn->totalCost = totalCost;
@@ -534,9 +520,12 @@ NeuralNetwork * _Nonnull allocateNeuralNetwork(void) {
 //
 //  Create the network layers, i.e. allocates memory for the weight, bias, activation, z, dC/dx and dC/db data structures
 //
-void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nullable miniBatchSize, bool pthread) {
+void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nullable miniBatchSize) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
+    
+    nn->number_of_layers = numberOfLayers;
+    nn->max_number_of_nodes_in_layer = max_array(ntLayers, numberOfLayers);
     
     nn->weightsList = initWeightsList(ntLayers, numberOfLayers);
     nn->biasesList = initBiasesList(ntLayers, numberOfLayers);
@@ -544,6 +533,8 @@ void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers
     nn->zsList = initZsList(ntLayers, numberOfLayers);
     nn->dcdwsList = initDcdwList(ntLayers, numberOfLayers);
     nn->dcdbsList = initDcdbList(ntLayers, numberOfLayers);
+    nn->delta_dcdwsList = initDcdwList(ntLayers, numberOfLayers);
+    nn->delta_dcdbsList = initDcdbList(ntLayers, numberOfLayers);
     
 #ifdef USE_OPENCL_GPU
     // Allocate the GPU compute environment
@@ -551,159 +542,14 @@ void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers
     setUpOpenCLDevice(nn->compute);
     nn->compute->gpuInferenceStore = initGPUInferenceStore(nn->compute, nn->weightsList, nn->activationsList, ntLayers, numberOfLayers);
 #endif
-    
-    if (pthread) {
-        if (miniBatchSize == NULL) {
-            fatal(PROGRAM_NAME, "mini batch size is NULL in network creation.");
-        }
-        nn->threadDataPt = (pthreadBatchNode **)malloc(*miniBatchSize * sizeof(pthreadBatchNode *));
-        nn->threadTID = (pthread_t *)malloc(*miniBatchSize * sizeof(pthread_t));
-        
-        for (int i=0; i<*miniBatchSize; i++) {
-            pthreadBatchNode *node = allocatePthreadBatchNode();
-            node->max = max_array(ntLayers, numberOfLayers);
-            node->weightsList = nn->weightsList;
-            node->biasesList = nn->biasesList;
-            node->activationsList = initActivationsList(ntLayers, numberOfLayers);
-            node->zsList = initZsList(ntLayers, numberOfLayers);
-            node->dcdwsList = initDcdwList(ntLayers, numberOfLayers);
-            node->dcdbsList = initDcdbList(ntLayers, numberOfLayers);
-            nn->threadDataPt[i] = node;
-        }
-    } else {
-        nn->threadDataPt = (pthreadBatchNode **)malloc(1*sizeof(pthreadBatchNode *));
-        pthreadBatchNode *node = allocatePthreadBatchNode();
-        node->max = max_array(ntLayers, numberOfLayers);
-        node->weightsList = nn->weightsList;
-        node->biasesList = nn->biasesList;
-        node->activationsList = nn->activationsList;
-        node->zsList = nn->zsList;;
-        node->dcdwsList = initDcdwList(ntLayers, numberOfLayers);
-        node->dcdbsList = initDcdbList(ntLayers, numberOfLayers);
-        nn->threadDataPt[0] = node;
-    }
 }
 
 //
 // Free-up all the memory used by a network
 //
-void destroy(void * _Nonnull self, int * _Nullable miniBatchSize, bool pthread) {
+void destroy(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
-    
-    if (pthread) {
-        if (miniBatchSize == NULL) {
-            fatal(PROGRAM_NAME, "mini batch size is NULL in network destruction.");
-        }
-        for (int i=0; i<*miniBatchSize; i++) {
-            pthreadBatchNode *node = nn->threadDataPt[i];
-            node->weightsList = NULL;
-            node->biasesList = NULL;
-            node->inoutSizes = NULL;
-            
-            activationNode *aTail = node->activationsList;
-            while (aTail != NULL && aTail->next != NULL) {
-                aTail = aTail->next;
-            }
-            activationNode *aNodePt = NULL;
-            while (aTail != NULL) {
-                aNodePt = aTail->previous;
-                free_fvector(aTail->a, 0, aTail->n);
-                aTail->a = NULL;
-                aTail->next = NULL;
-                aTail->previous = NULL;
-                free(aTail);
-                aTail = aNodePt;
-            }
-            
-            zNode *zTail = node->zsList;
-            while (zTail != NULL && zTail->next != NULL) {
-                zTail = zTail->next;
-            }
-            zNode *zNodePt = NULL;
-            while (zTail != NULL) {
-                zNodePt = zTail->previous;
-                free_fvector(zTail->z, 0, zTail->n);
-                zTail->z = NULL;
-                zTail->next = NULL;
-                zTail->previous = NULL;
-                free(zTail);
-                zTail = zNodePt;
-            }
-            
-            dcdwNode *dcdwTail = node->dcdwsList;
-            while (dcdwTail != NULL && dcdwTail->next ) {
-                dcdwTail = dcdwTail->next;
-            }
-            dcdwNode *dcdwNodePt = NULL;
-            while (dcdwTail != NULL) {
-                dcdwNodePt = dcdwTail->previous;
-                free_fmatrix(dcdwTail->dcdw, 0, dcdwTail->m-1, 0, dcdwTail->n-1);
-                dcdwTail->dcdw = NULL;
-                dcdwTail->next = NULL;
-                dcdwTail->previous = NULL;
-                free(dcdwTail);
-                dcdwTail = dcdwNodePt;
-            }
-            
-            dcdbNode *dcdbTail = node->dcdbsList;
-            while (dcdbTail != NULL && dcdbTail->next != NULL) {
-                dcdbTail = dcdbTail->next;
-            }
-            dcdbNode *dcdbNodePt = NULL;
-            while (dcdbTail != NULL) {
-                dcdbNodePt = dcdbTail->previous;
-                free_fvector(dcdbTail->dcdb, 0, dcdbTail->n);
-                dcdbTail->dcdb = NULL;
-                dcdbTail->next = NULL;
-                dcdbTail->previous = NULL;
-                free(dcdbTail);
-                dcdbTail = dcdbNodePt;
-            }
-            free(node);
-        }
-        free(nn->threadDataPt);
-        free(nn->threadTID);
-    } else {
-        pthreadBatchNode *node = nn->threadDataPt[0];
-        node->weightsList = NULL;
-        node->biasesList = NULL;
-        node->inoutSizes = NULL;
-        node->activationsList = NULL;
-        node->zsList = NULL;
-        
-        dcdwNode *dcdwTail = node->dcdwsList;
-        while (dcdwTail != NULL && dcdwTail->next ) {
-            dcdwTail = dcdwTail->next;
-        }
-        dcdwNode *dcdwNodePt = NULL;
-        while (dcdwTail != NULL) {
-            dcdwNodePt = dcdwTail->previous;
-            free_fmatrix(dcdwTail->dcdw, 0, dcdwTail->m-1, 0, dcdwTail->n-1);
-            dcdwTail->dcdw = NULL;
-            dcdwTail->next = NULL;
-            dcdwTail->previous = NULL;
-            free(dcdwTail);
-            dcdwTail = dcdwNodePt;
-        }
-        
-        dcdbNode *dcdbTail = node->dcdbsList;
-        while (dcdbTail != NULL && dcdbTail->next != NULL) {
-            dcdbTail = dcdbTail->next;
-        }
-        dcdbNode *dcdbNodePt = NULL;
-        while (dcdbTail != NULL) {
-            dcdbNodePt = dcdbTail->previous;
-            free_fvector(dcdbTail->dcdb, 0, dcdbTail->n);
-            dcdbTail->dcdb = NULL;
-            dcdbTail->next = NULL;
-            dcdbTail->previous = NULL;
-            free(dcdbTail);
-            dcdbTail = dcdbNodePt;
-        }
-        free(node);
-        free(nn->threadDataPt);
-    }
     
     weightNode *wTail = nn->weightsList;
     while (wTail != NULL && wTail->next != NULL) {
@@ -750,6 +596,21 @@ void destroy(void * _Nonnull self, int * _Nullable miniBatchSize, bool pthread) 
         dcdwTail = dcdwNodePt;
     }
     
+    dcdwNode *delta_dcdwTail = nn->delta_dcdwsList;
+    while (delta_dcdwTail != NULL && delta_dcdwTail->next ) {
+        delta_dcdwTail = delta_dcdwTail->next;
+    }
+    dcdwNode *delta_dcdwNodePt = NULL;
+    while (delta_dcdwTail != NULL) {
+        delta_dcdwNodePt = delta_dcdwTail->previous;
+        free_fmatrix(delta_dcdwTail->dcdw, 0, delta_dcdwTail->m-1, 0, delta_dcdwTail->n-1);
+        delta_dcdwTail->dcdw = NULL;
+        delta_dcdwTail->next = NULL;
+        delta_dcdwTail->previous = NULL;
+        free(delta_dcdwTail);
+        delta_dcdwTail = delta_dcdwNodePt;
+    }
+    
     dcdbNode *dcdbTail = nn->dcdbsList;
     while (dcdbTail != NULL && dcdbTail->next != NULL) {
         dcdbTail = dcdbTail->next;
@@ -763,6 +624,21 @@ void destroy(void * _Nonnull self, int * _Nullable miniBatchSize, bool pthread) 
         dcdbTail->previous = NULL;
         free(dcdbTail);
         dcdbTail = dcdbNodePt;
+    }
+    
+    dcdbNode *delta_dcdbTail = nn->delta_dcdbsList;
+    while (delta_dcdbTail != NULL && delta_dcdbTail->next != NULL) {
+        delta_dcdbTail = delta_dcdbTail->next;
+    }
+    dcdbNode *delta_dcdbNodePt = NULL;
+    while (delta_dcdbTail != NULL) {
+        delta_dcdbNodePt = delta_dcdbTail->previous;
+        free_fvector(delta_dcdbTail->dcdb, 0, delta_dcdbTail->n);
+        delta_dcdbTail->dcdb = NULL;
+        delta_dcdbTail->next = NULL;
+        delta_dcdbTail->previous = NULL;
+        free(delta_dcdbTail);
+        delta_dcdbTail = delta_dcdbNodePt;
     }
     
     activationNode *aTail = nn->activationsList;
@@ -823,22 +699,14 @@ void destroy(void * _Nonnull self, int * _Nullable miniBatchSize, bool pthread) 
 #endif
 }
 
-void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float * _Nullable * _Nullable testData, size_t tr1, size_t tr2, size_t * _Nullable ts1, size_t * _Nullable ts2, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nonnull inoutSizes, int * _Nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool pthread, bool * _Nullable showTotalCost) {
+void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float * _Nullable * _Nullable testData, size_t tr1, size_t tr2, size_t * _Nullable ts1, size_t * _Nullable ts2, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nonnull inoutSizes, int * _Nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool * _Nullable showTotalCost) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
-    
-    if (pthread) {
-        for (int i=0; i<miniBatchSize; i++) {
-            pthreadBatchNode *node = nn->threadDataPt[i];
-            node->inoutSizes = inoutSizes;
-        }
-    } else {
-        pthreadBatchNode *node = nn->threadDataPt[0];
-        node->inoutSizes = inoutSizes;
-    }
+    nn->number_of_features = inoutSizes[0];
     
     // Stochastic gradient descent
     float **miniBatch = floatmatrix(0, miniBatchSize-1, 0, tr2-1);
+    nn->batch = miniBatch;
     int delta;
     for (int k=1; k<=epochs; k++) {
         delta = 0;
@@ -854,11 +722,7 @@ void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float *
         for (int l=1; l<=(int)tr1/miniBatchSize; l++) {
             memcpy(*miniBatch, *trainingData+delta, (miniBatchSize*tr2)*sizeof(float));
             double rt = realtime();
-            if (pthread) {
-                nn->updateMiniBatch((void *)nn, miniBatch, miniBatchSize, ntLayers, numberOfLayers, tr1, eta, lambda, &pthread);
-            } else {
-                nn->updateMiniBatch((void *)nn, miniBatch, miniBatchSize, ntLayers, numberOfLayers, tr1, eta, lambda, NULL);
-            }
+            nn->miniBatch((void *)nn, miniBatch, miniBatchSize, ntLayers, numberOfLayers, tr1, eta, lambda);
             rt = realtime() - rt;
             train_time += rt;
             delta = delta + ((int)miniBatchSize*(int)tr2);
@@ -875,20 +739,20 @@ void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float *
         
         if (testData != NULL) {
             fprintf(stdout, "%s: Epoch {%d/%d}: testing network with {%zu} inputs:\n", PROGRAM_NAME, k, epochs, *ts1);
-            int result = nn->evaluate(self, testData, *ts1, inoutSizes);
+            int result = nn->evaluate(self, testData, *ts1);
             fprintf(stdout, "%s: Epoch {%d/%d}: {%d} / {%zu}.\n", PROGRAM_NAME, k, epochs, result, *ts1);
         }
         
         if (showTotalCost != NULL) {
             if (*showTotalCost == true) {
                 double rt = realtime();
-                float cost = nn->totalCost(self, trainingData, tr1, inoutSizes, NULL, lambda, false);
+                float cost = nn->totalCost(self, trainingData, tr1, NULL, lambda, false);
                 rt = realtime() -  rt;
                 fprintf(stdout, "%s: cost on training data: {%f} / Time (s): %f\n", PROGRAM_NAME, cost, rt);
                 
                 if (testData != NULL) {
                     double rt = realtime();
-                    cost = nn->totalCost(self, testData, *ts1, inoutSizes, classifications, lambda, true);
+                    cost = nn->totalCost(self, testData, *ts1, classifications, lambda, true);
                     rt = realtime() -  rt;
                     fprintf(stdout, "%s: cost on test data: {%f} / Time (s): %f\n", PROGRAM_NAME, cost, rt);
                 }
@@ -900,14 +764,9 @@ void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float *
     free_fmatrix(miniBatch, 0, miniBatchSize-1, 0, tr2-1);
 }
 
-void updateMiniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int miniBatchSize, int * _Nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda, bool * _Nullable pthread) {
+void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int miniBatchSize, int * _Nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
-    
-    bool multiThreadedBatch = false;
-    if (pthread != NULL) {
-        multiThreadedBatch = (*pthread == true) ? true : false;
-    }
     
     dcdwNode *dcdwNodePt = nn->dcdwsList;
     while (dcdwNodePt != NULL) {
@@ -921,27 +780,23 @@ void updateMiniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch
         dcdbNodePt = dcdbNodePt->next;
     }
     
-    double rt = realtime();
-    for (int i=0; i<miniBatchSize; i++) {
-        if (multiThreadedBatch) {
-            pthreadBatchNode *node = nn->threadDataPt[i];
-            node->index = i;
-            node->batch = miniBatch;
-            pthread_create(&(nn->threadTID[i]), NULL, nn->backpropagation, (void *)node);
-        } else {
-            pthreadBatchNode *node = nn->threadDataPt[0];
-            node->index = i;
-            node->batch = miniBatch;
-            nn->backpropagation((void *)node);
-            nn->accumulateFromThreads((void *)nn, miniBatchSize, multiThreadedBatch);
-        }
+    dcdwNode *delta_dcdwNodePt = nn->delta_dcdwsList;
+    while (delta_dcdwNodePt != NULL) {
+        memset(*delta_dcdwNodePt->dcdw, 0.0f, (delta_dcdwNodePt->m*delta_dcdwNodePt->n)*sizeof(float));
+        delta_dcdwNodePt = delta_dcdwNodePt->next;
     }
     
-    if (multiThreadedBatch) {
-        for (int i=0; i<miniBatchSize; i++) {
-            pthread_join(nn->threadTID[i], NULL);
-        }
-        nn->accumulateFromThreads((void *)nn, miniBatchSize, multiThreadedBatch);
+    dcdbNode *delta_dcdbNodePt = nn->delta_dcdbsList;
+    while (delta_dcdbNodePt != NULL) {
+        memset(delta_dcdbNodePt->dcdb, 0.0f, delta_dcdbNodePt->n*sizeof(float));
+        delta_dcdbNodePt = delta_dcdbNodePt->next;
+    }
+    
+    double rt = realtime();
+    for (int i=0; i<miniBatchSize; i++) {
+        nn->example_idx = i;
+        nn->backpropagation((void *)nn);
+        nn->batchAccumulation((void *)nn);
     }
     rt = realtime() - rt;
 #ifdef VERBOSE
@@ -949,6 +804,32 @@ void updateMiniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch
 #endif
     
     nn->updateWeightsBiases((void *)nn, miniBatchSize, tr1, eta, lambda);
+}
+
+void batchAccumulation(void * _Nonnull self) {
+    
+    // Accumulate dcdw and dc/db
+    
+    NeuralNetwork *nn = (NeuralNetwork *)self;
+    
+    dcdwNode *dcdwNodePt = nn->dcdwsList;
+    dcdbNode *dcdbNodePt = nn->dcdbsList;
+    dcdwNode *delta_dcdwNodePt = nn->delta_dcdwsList;
+    dcdbNode *delta_dcdbNodePt = nn->delta_dcdbsList;
+    while (dcdwNodePt != NULL && delta_dcdwNodePt != NULL) {
+        for (int i=0; i<dcdwNodePt->m; i++) {
+            for (int j=0; j<dcdwNodePt->n; j++) {
+                dcdwNodePt->dcdw[i][j] = dcdwNodePt->dcdw[i][j] + delta_dcdwNodePt->dcdw[i][j];
+            }
+        }
+        for (int i=0; i<dcdbNodePt->n; i++) {
+            dcdbNodePt->dcdb[i] = dcdbNodePt->dcdb[i] + delta_dcdbNodePt->dcdb[i];
+        }
+        dcdwNodePt = dcdwNodePt->next;
+        dcdbNodePt = dcdbNodePt->next;
+        delta_dcdwNodePt = delta_dcdwNodePt->next;
+        delta_dcdbNodePt = delta_dcdbNodePt->next;
+    }
 }
 
 void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda) {
@@ -1012,102 +893,52 @@ void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, fl
 #endif
 }
 
-void accumulateFromThreads(void * _Nonnull self, int miniBatchSize, bool pthread) {
-    
-    NeuralNetwork *nn = (NeuralNetwork *)self;
-    
-    // Accumulate dcdw and dc/db from all threads if multithreaded or
-    // from a single one if serial
-    
-    if (pthread) {
-        for (int i=0; i<miniBatchSize; i++) {
-            dcdwNode *dcdwNodePt = nn->dcdwsList;
-            dcdbNode *dcdbNodePt = nn->dcdbsList;
-            pthreadBatchNode *node = nn->threadDataPt[i];
-            dcdwNode *pthead_dcdwsPt = node->dcdwsList;
-            dcdbNode *pthead_dcdbsPt = node->dcdbsList;
-            while (dcdwNodePt != NULL && pthead_dcdwsPt != NULL) {
-                for (int j=0; j<dcdwNodePt->m; j++) {
-                    for (int k=0; k<dcdwNodePt->n; k++) {
-                        dcdwNodePt->dcdw[j][k] = dcdwNodePt->dcdw[j][k] + pthead_dcdwsPt->dcdw[j][k];
-                    }
-                }
-                for (int j=0; j<dcdbNodePt->n; j++) {
-                    dcdbNodePt->dcdb[j] = dcdbNodePt->dcdb[j] + pthead_dcdbsPt->dcdb[j];
-                }
-                dcdwNodePt = dcdwNodePt->next;
-                dcdbNodePt = dcdbNodePt->next;
-                pthead_dcdwsPt = pthead_dcdwsPt->next;
-                pthead_dcdbsPt = pthead_dcdbsPt->next;
-            }
-        }
-    } else {
-        dcdwNode *dcdwNodePt = nn->dcdwsList;
-        dcdbNode *dcdbNodePt = nn->dcdbsList;
-        pthreadBatchNode *node = nn->threadDataPt[0];
-        dcdwNode *pthead_dcdwsPt = node->dcdwsList;
-        dcdbNode *pthead_dcdbsPt = node->dcdbsList;
-        while (dcdwNodePt != NULL && pthead_dcdwsPt != NULL) {
-            for (int j=0; j<dcdwNodePt->m; j++) {
-                for (int k=0; k<dcdwNodePt->n; k++) {
-                    dcdwNodePt->dcdw[j][k] = dcdwNodePt->dcdw[j][k] + pthead_dcdwsPt->dcdw[j][k];
-                }
-            }
-            for (int j=0; j<dcdbNodePt->n; j++) {
-                dcdbNodePt->dcdb[j] = dcdbNodePt->dcdb[j] + pthead_dcdbsPt->dcdb[j];
-            }
-            dcdwNodePt = dcdwNodePt->next;
-            dcdbNodePt = dcdbNodePt->next;
-            pthead_dcdwsPt = pthead_dcdwsPt->next;
-            pthead_dcdbsPt = pthead_dcdbsPt->next;
-        }
-    }
-}
-
 //
 //  Return the gradient of the cross-entropy cost function C_x layers by layers
 //
-void * _Nullable backpropagation(void * _Nonnull node) {
+void * _Nullable backpropagation(void * _Nonnull self) {
     
-    pthreadBatchNode *entry = (pthreadBatchNode *)node;
+    NeuralNetwork *nn = (NeuralNetwork *)self;
     
     // Activations at the input layer
-    activationNode *aNodePt = entry->activationsList;
-    for (int i=0; i<entry->inoutSizes[0]; i++) {
-        aNodePt->a[i] = entry->batch[entry->index][i];
+    activationNode *aNodePt = nn->activationsList;
+    for (int i=0; i<nn->number_of_features; i++) {
+        aNodePt->a[i] = nn->batch[nn->example_idx][i];
     }
     
     // Feedforward
-    feedforward(entry);
+    feedforward(nn);
     
     // ------------- Backward pass
     // At last layer
     
-    activationNode *aTail = entry->activationsList;
+    activationNode *aTail = nn->activationsList;
     while (aTail != NULL && aTail->next != NULL) {
         aTail = aTail->next;
     }
-    zNode *zTail = entry->zsList;
+    zNode *zTail = nn->zsList;
     while (zTail != NULL && zTail->next != NULL) {
         zTail = zTail->next;
     }
     
-    float delta[entry->max];
-    float buffer[entry->max];
+    float delta[nn->max_number_of_nodes_in_layer];
+    float buffer[nn->max_number_of_nodes_in_layer];
+    memset(delta, 0.0f, sizeof(delta));
+    memset(buffer, 0.0f, sizeof(buffer));
     
     // Compute delta
-    int k = entry->inoutSizes[0];
+    int k = nn->number_of_features;
     for (int i=0; i<aTail->n; i++) {
-        delta[i] = aTail->a[i] - entry->batch[entry->index][k];
+        delta[i] = aTail->a[i] - nn->batch[nn->example_idx][k];
         k++;
     }
     
     //dc/dw and dc/db at last layer
-    dcdwNode *dcdwTail = entry->dcdwsList;
+    dcdwNode *dcdwTail = nn->delta_dcdwsList;
     while (dcdwTail != NULL && dcdwTail->next != NULL) {
         dcdwTail = dcdwTail->next;
     }
-    dcdbNode *dcdbTail = entry->dcdbsList;
+    dcdbNode *dcdbTail = nn->delta_dcdbsList;
     while (dcdbTail != NULL && dcdbTail->next != NULL) {
         dcdbTail = dcdbTail->next;
     }
@@ -1124,7 +955,7 @@ void * _Nullable backpropagation(void * _Nonnull node) {
     // The backward pass loop
     
     // Weights at last layer
-    weightNode *wTail = entry->weightsList;
+    weightNode *wTail = nn->weightsList;
     while (wTail != NULL && wTail->next != NULL) {
         wTail = wTail->next;
     }
@@ -1166,7 +997,7 @@ void * _Nullable backpropagation(void * _Nonnull node) {
     return NULL;
 }
 
-int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t ts1, int * _Nonnull inoutSizes) {
+int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t ts1) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1183,13 +1014,13 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
             fatal(PROGRAM_NAME, "couldn't map result buffer from GPU.");
         }
         float *buffer = _mapped_A;
-        for (int i=0; i<inoutSizes[0]; i++) {
+        for (int i=0; i<nn->number_of_features; i++) {
             buffer[i] = testData[k][i];
         }
         clEnqueueUnmapMemObject(nn->compute->queue, inferenceNodePt->A, _mapped_A, 0, NULL, NULL);
 #else
         aNodePt = nn->activationsList;
-        for (int i=0; i<inoutSizes[0]; i++) {
+        for (int i=0; i<nn->number_of_features; i++) {
             aNodePt->a[i] = testData[k][i];
         }
 #endif
@@ -1218,7 +1049,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
 
 #endif
         results = (float)argmax(aNodePt->a, aNodePt->n);
-        sum = sum + (results == testData[k][inoutSizes[0]]);
+        sum = sum + (results == testData[k][nn->number_of_features]);
     }
     
     return sum;
@@ -1227,7 +1058,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
 //
 //  Compute the total cost function using a cross-entropy formulation
 //
-float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, int * _Nonnull inoutSizes, int * _Nullable classifications, float lambda, bool convert) {
+float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, int * _Nullable classifications, float lambda, bool convert) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1244,13 +1075,13 @@ float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m
             fatal(PROGRAM_NAME, "couldn't map result buffer from GPU.");
         }
         float *buffer = _mapped_A;
-        for (int j=0; j<inoutSizes[0]; j++) {
+        for (int j=0; j<nn->number_of_features; j++) {
             buffer[j] = data[i][j];
         }
         clEnqueueUnmapMemObject(nn->compute->queue, inferenceNodePt->A, _mapped_A, 0, NULL, NULL);
 #else
         aNodePt = nn->activationsList;
-        for (int j=0; j<inoutSizes[0]; j++) {
+        for (int j=0; j<nn->number_of_features; j++) {
             aNodePt->a[j] = data[i][j];
         }
 #endif
@@ -1277,12 +1108,12 @@ float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m
         memset(y, 0.0f, sizeof(y));
         if (convert == true) {
             for (int j=0; j<aNodePt->n; j++) {
-                if (data[i][inoutSizes[0]] == classifications[j]) {
+                if (data[i][nn->number_of_features] == classifications[j]) {
                     y[j] = 1.0f;
                 }
             }
         } else {
-            int idx = inoutSizes[0];
+            int idx = nn->number_of_features;
             for (int j=0; j<aNodePt->n; j++) {
                 y[j] = data[i][idx];
                 idx++;
@@ -1306,7 +1137,7 @@ float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m
 //
 //  Return the output of the network for a given activation input
 //
-void __attribute__((overloadable)) feedforward(void * _Nonnull self) {
+void feedforward(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1354,33 +1185,4 @@ void __attribute__((overloadable)) feedforward(void * _Nonnull self) {
         bNodePt = bNodePt->next;
     }
 #endif
-}
-
-void __attribute__((overloadable)) feedforward(pthreadBatchNode * _Nonnull node) {
-    
-    weightNode *wNodePt = node->weightsList;
-    biasNode *bNodePt = node->biasesList;
-    activationNode *aNodePt = node->activationsList;
-    zNode *zNodePt = node->zsList;
-    
-    while (wNodePt != NULL && bNodePt != NULL) {
-        aNodePt = aNodePt->next;
-        zNodePt = zNodePt->next;
-        float buffer[aNodePt->n];
-        memset(buffer, 0.0f, sizeof(buffer));
-        cblas_sgemv(CblasRowMajor, CblasNoTrans, (int)wNodePt->m, (int)wNodePt->n, 1.0, *wNodePt->w, (int)wNodePt->n, aNodePt->previous->a, 1, 0.0, buffer, 1);
-#ifdef __APPLE__
-        vDSP_vadd(buffer, 1, bNodePt->b, 1, zNodePt->z, 1, bNodePt->n);
-#else
-        for (int i=0; i<bNodePt->n; i++) {
-            zNodePt->z[i] = buffer[i] + bNodePt->b[i];
-        }
-#endif
-        for (int i=0; i<aNodePt->n; i++) {
-            aNodePt->a[i] = sigmoid(zNodePt->z[i]);
-        }
-        nanToNum(aNodePt->a, aNodePt->n);
-        wNodePt = wNodePt->next;
-        bNodePt = bNodePt->next;
-    }
 }

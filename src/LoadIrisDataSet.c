@@ -64,14 +64,28 @@ float * _Nullable * _Nullable readFile(const char * _Nonnull file, size_t * _Non
     while (!feof(f1));
     fclose(f1);
     
+    // Needed to normalize the data
+    float max_data1 = max_array(data1, *len);
+    float min_data1 = min_array(data1, *len);
+    
+    float max_data2 = max_array(data2, *len);
+    float min_data2 = min_array(data2, *len);
+    
+    float max_data3 = max_array(data3, *len);
+    float min_data3 = min_array(data3, *len);
+    
+    float max_data4 = max_array(data4, *len);
+    float min_data4 = min_array(data4, *len);
+    
     // Return a design matrix of the data set
+    // with normalized input data
     float **dataSet = floatmatrix(0, *len-1, 0, 5-1);
     memset(*dataSet, 0.0f, (*len*5)*sizeof(float));
     for (int i=0; i<*len; i++) {
-        dataSet[i][0] = data1[i];
-        dataSet[i][1] = data2[i];
-        dataSet[i][2] = data3[i];
-        dataSet[i][3] = data4[i];
+        dataSet[i][0] = (data1[i] - min_data1) / (max_data1 - min_data1);
+        dataSet[i][1] = (data2[i] - min_data2) / (max_data2 - min_data2);
+        dataSet[i][2] = (data3[i] - min_data3) / (max_data3 - min_data3);
+        dataSet[i][3] = (data4[i] - min_data4) / (max_data4 - min_data4);
         dataSet[i][4] = (float)data5[i];
     }
     

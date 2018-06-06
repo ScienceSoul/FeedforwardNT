@@ -43,7 +43,10 @@ void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumen
 float randn(float mu, float sigma);
 
 int __attribute__((overloadable)) min_array(int * _Nonnull a, size_t num_elements);
+float __attribute__((overloadable)) min_array(float * _Nonnull a, size_t num_elements);
+
 int __attribute__((overloadable)) max_array(int * _Nonnull a, size_t num_elements);
+float __attribute__((overloadable)) max_array(float * _Nonnull a, size_t num_elements);
 
 int __attribute__((overloadable)) argmax(int * _Nonnull a, size_t num_elements);
 int __attribute__((overloadable)) argmax(float * _Nonnull a, size_t num_elements);
