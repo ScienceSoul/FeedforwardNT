@@ -8,7 +8,7 @@
 CC = clang
 
 # Compile flags
-CFLAGS = -Wall -O3 -DUSE_OPENCL_GPU
+CFLAGS = -Wall -O3 #-DUSE_OPENCL_GPU
 
 INCLUDES = -I../include
 
@@ -17,7 +17,7 @@ LFLAGS = -framework Accelerate -framework OpenCL
 
 LIBS = -lm
 
-SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c Memory.c Utils.c TimeProfile.c OpenCLUtils.c
+SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c LoadMNISTDataSet.c Memory.c Utils.c TimeProfile.c OpenCLUtils.c
 
 # define the C object files
 #
