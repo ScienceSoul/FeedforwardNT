@@ -44,7 +44,7 @@ Notes:
 4. One can specify a sperate data set to test the network. In that case, an validation set is also created from the training data set. If no test data are provided, they will be created from the training data set.
 
 ```
-./FeedforwardNT ../params/parameters.dat --test-data path/to/file
+./FeedforwardNT ../params/parameters.dat -test-data path/to/file
 ```
 
 5. Currently OpenCL is used to expreiment with offloading inference to the GPU. This is really just an experiment since the current implementation is not efficient because the network list traversal is done on the CPU. This implies that the code needs to call the GPU kernel at each layer of the network and to copy the computed activations to the next layer (i.e., copy between GPU buffers). Also some data need to be copied to and from the GPU for each data point of a data set. 
