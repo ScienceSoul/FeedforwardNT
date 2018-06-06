@@ -6,7 +6,7 @@ This program demonstrates the implementation of a neural network. It uses a stoc
 
 * Language: C
 * Compiler: Clang/LLVM
-* Platform: masOS/Linux (posix threads)
+* Platform: masOS/Linux
 * Required library: BLAS/LAPACK
 
 Compilation:
