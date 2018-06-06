@@ -36,19 +36,19 @@ int main(int argc, const char * argv[]) {
     
     fprintf(stdout, "%s: start....\n", PROGRAM_NAME);
     
-    bool pthread = false;
+    bool metal = false;
     bool availableTestData = false;
     bool err = false;
     
     if (argc >= 3 && argc < 4) {
-        if (strcmp(argv[2], "-pthread") == 0) {
-            pthread = true;
+        if (strcmp(argv[2], "-metal") == 0) {
+            metal = true;
         } else if (strcmp(argv[2], "-test-data") == 0) {
             fatal(PROGRAM_NAME, "-test-data option given but no argument for location of test data set file present.");
         } else fatal(PROGRAM_NAME, "problem in argument list. Possibly unrecognized argument.");
     } else if (argc >= 3 && argc < 5) {
-        if (strcmp(argv[2], "-pthread") == 0 || strcmp(argv[3], "-pthread") == 0) {
-            fatal(PROGRAM_NAME, "-pthread and -test-data given but missing argument for location of test data set file.");
+        if (strcmp(argv[2], "-metal") == 0 || strcmp(argv[3], "-metal") == 0) {
+            fatal(PROGRAM_NAME, "-metal and -test-data given but missing argument for location of test data set file.");
         } else {
             if (strcmp(argv[2], "-test-data") == 0 || strcmp(argv[3], "-test-data") == 0) {
                 if (strcmp(argv[2], "-test-data") == 0) {
@@ -62,8 +62,8 @@ int main(int argc, const char * argv[]) {
             }
         }
     } else if (argc >= 3 && argc <= 5) {
-        if (strcmp(argv[2], "-pthread") == 0) {
-            pthread = true;
+        if (strcmp(argv[2], "-metal") == 0) {
+            metal = true;
             if (strcmp(argv[3], "-test-data") == 0) {
                 strncpy(testSetFile, argv[4], 256);
             } else if (strcmp(argv[4], "-test-data") == 0) {
@@ -72,8 +72,8 @@ int main(int argc, const char * argv[]) {
                 err = true;
             }
             if (!err) availableTestData = true;
-        } else if (strcmp(argv[3], "-pthread") == 0) {
-            pthread = true;
+        } else if (strcmp(argv[3], "-metal") == 0) {
+            metal = true;
             if (strcmp(argv[2], "-test-data") == 0) {
                 strncpy(testSetFile, argv[4], 256);
             } else if (strcmp(argv[4], "-test-data") == 0) {
@@ -82,8 +82,8 @@ int main(int argc, const char * argv[]) {
                 err = true;
             }
             if (!err) availableTestData = true;
-        } else if (strcmp(argv[4], "-pthread") == 0) {
-            pthread = true;
+        } else if (strcmp(argv[4], "-metal") == 0) {
+            metal = true;
             if (strcmp(argv[2], "-test-data") == 0) {
                 strncpy(testSetFile, argv[3], 256);
             } else if (strcmp(argv[3], "-test-data") == 0) {
@@ -97,8 +97,8 @@ int main(int argc, const char * argv[]) {
     
     if (err) fatal(PROGRAM_NAME, "problem in argument list. Possibly unrecognized argument.");
 
-    if (pthread) {
-        fprintf(stdout, "%s: multithreaded batch active.\n", PROGRAM_NAME);
+    if (metal) {
+        fatal(PROGRAM_NAME, "Metal acceleration is not imnplemented yet.");
     }
     if (availableTestData) {
         fprintf(stdout, "%s: used test data from test data set.\n", PROGRAM_NAME);
