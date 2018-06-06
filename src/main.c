@@ -103,10 +103,10 @@ int main(int argc, const char * argv[]) {
     if (availableTestData) {
         fprintf(stdout, "%s: used test data from test data set.\n", PROGRAM_NAME);
         validate = (validation *)malloc(sizeof(validation));
-        validate->create = createTestData;
+        validate->create = getData;
     } else {
         test = (testing *)malloc(sizeof(testing));
-        test->create = createTestData;
+        test->create = getData;
     }
     
     memset(dataSetName, 0, sizeof(dataSetName));

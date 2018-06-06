@@ -219,20 +219,20 @@ float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSe
     return trainingData;
 }
 
-float * _Nonnull * _Nonnull createTestData(float * _Nonnull * _Nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2) {
+float * _Nonnull * _Nonnull getData(float * _Nonnull * _Nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2) {
     
-    float **testData = floatmatrix(0, end, 0, len2-1);
+    float **data = floatmatrix(0, end, 0, len2-1);
     *t1 = end;
     *t2 = len2;
     
     int idx = 0;
     for (int i=(int)start; i<start+end; i++) {
         for (int j=0; j<len2; j++) {
-            testData[idx][j] = dataSet[i][j];
+            data[idx][j] = dataSet[i][j];
         }
         idx++;
     }
-    return testData;
+    return data;
 }
 
 void shuffle(float * _Nonnull * _Nonnull array, size_t len1, size_t len2) {
