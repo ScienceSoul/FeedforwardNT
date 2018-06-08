@@ -2,7 +2,7 @@
 
 ### Description:
 
-This program demonstrates the implementation of a neural network. It uses a stochastic gradient descent method with back propagation and a cross-entropy cost function. The activation function is the sigmoid function.
+This program demonstrates the implementation of a feedforward neural network. It uses a stochastic gradient descent method with back propagation and a cross-entropy cost function. The activation function is the sigmoid function.
 
 * Language: C
 * Compiler: Clang/LLVM
@@ -46,7 +46,3 @@ Notes:
 ```
 ./FeedforwardNT ../params/parameters.dat -test-data path/to/file
 ```
-
-5. Currently OpenCL is used to expreiment with offloading inference to the GPU. This is really just an experiment since the current implementation is not efficient because the network list traversal is done on the CPU. This implies that the code needs to call the GPU kernel at each layer of the network and to copy the computed activations to the next layer (i.e., copy between GPU buffers). Also some data need to be copied to and from the GPU for each data point of a data set. 
-    
-    Some of these limitations are partly due to the old OpenCL 1.2 which I use here although one can do a more efficient implementation with it albeit with the cost of having less clear data structures. Shared virtual memory in OpenCL 2.0 is a solution to that because it allows the use of pointer-linked data structures like linked lists or trees that are shared between the host and a device side of an OpenCL application. The GPU code is not activated by default, to compile the program with it, give -DUSE_OPENCL_GPU to CFLAGS in the Makefile.

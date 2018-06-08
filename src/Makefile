@@ -8,7 +8,7 @@
 CC = clang
 
 # Compile flags
-CFLAGS = -Wall -O3 #-DUSE_OPENCL_GPU
+CFLAGS = -Wall -O3
 
 INCLUDES = -I../include
 

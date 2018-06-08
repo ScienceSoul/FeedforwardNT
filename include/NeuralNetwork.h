@@ -8,52 +8,11 @@
 #ifndef NeuralNetwork_h
 #define NeuralNetwork_h
 
-#ifdef USE_OPENCL_GPU
-    #include "OpenCLUtils.h"
-#endif
-
 #include <stdio.h>
 #include "Utils.h"
 #include "TimeProfile.h"
 
 #endif /* NeuralNetwork_h */
-
-#ifdef USE_OPENCL_GPU
-
-#define OPENCL_PROGRAM_FILE_LOC1 "./kernel/inference.cl"
-#define OPENCL_PROGRAM_FILE_LOC2 "../kernel/inference.cl"
-
-typedef struct gpuInference {
-    int m;
-    int n;
-    cl_mem _Nullable W;
-    cl_mem _Nullable A;
-    cl_mem _Nullable B;
-    cl_mem _Nullable Z;
-    // The GPU kernel associated with the sgemv operation
-    cl_kernel _Nullable kernel;
-    struct gpuInference * _Nullable next;
-    struct gpuInference * _Nullable previous;
-} gpuInference;
-
-typedef struct GPUCompute {
-    struct gpuInference * _Nullable gpuInferenceStore;
-    cl_program _Nullable program;
-    cl_device_id _Nullable device;
-    cl_context  _Nullable context;
-    cl_command_queue _Nullable queue;
-    
-    // The sgemv routine
-    void (* _Nullable inference)(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore);
-} GPUCompute;
-
- gpuInference * _Nonnull allocateGPUInference(void);
- GPUCompute * _Nonnull  allocateGPUCompute(void);
- void setUpOpenCLDevice(GPUCompute *compute);
- gpuInference * _Nonnull initGPUInferenceStore(GPUCompute *compute, weightNode * _Nonnull weightsList, activationNode * _Nonnull activationsList, int * _Nonnull ntLayers, size_t numberOfLayers);
-void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore);
-
-#endif
 
 typedef struct weightNode {
     size_t m, n;
@@ -147,11 +106,7 @@ typedef struct NeuralNetwork {
     dcdbNode * _Nullable dcdbsList;
     dcdwNode * _Nullable delta_dcdwsList;
     dcdbNode * _Nullable delta_dcdbsList;
-    
-#ifdef USE_OPENCL_GPU
-    GPUCompute * _Nullable compute;
-#endif
-    
+        
     void (* _Nullable genesis)(void * _Nonnull self);
     void (* _Nullable finale)(void * _Nonnull self);
     
