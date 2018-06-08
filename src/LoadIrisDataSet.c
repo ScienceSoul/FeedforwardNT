@@ -97,12 +97,12 @@ float * _Nullable * _Nullable readFile(const char * _Nonnull file, size_t * _Non
     return dataSet;
 }
 
-float * _Nonnull * _Nonnull loadIris(const char * _Nonnull file, size_t * _Nonnull len) {
+float * _Nonnull * _Nonnull loadIris(const char * _Nonnull file, size_t * _Nonnull len1, size_t * _Nonnull len2) {
     
-    float **dataSet = readFile(file, len);
+    float **dataSet = readFile(file, len1);
     if (dataSet == NULL) {
         fatal(PROGRAM_NAME, "problem reading iris data set.");
     } else fprintf(stdout, "%s: load iris data set.\n", PROGRAM_NAME);
-    
+    *len2 = 5;
     return dataSet;
 }

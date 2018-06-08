@@ -10,8 +10,6 @@
 #endif
 
 #include "Utils.h"
-#include "LoadIrisDataSet.h"
-#include "LoadMNISTDataSet.h"
 #include "Memory.h"
 
 static int formatType;
@@ -78,163 +76,6 @@ void format(char * _Nullable head, char * _Nullable message, int *iValue, double
     exit(-1);
 }
 
-int loadParameters(const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile, int * _Nonnull ntLayers, size_t * _Nonnull numberOfLayers, int * _Nonnull dataDivisions, size_t * _Nonnull numberOfDataDivisions, int * _Nonnull classifications, size_t * _Nonnull numberOfClassifications, int * _Nonnull inoutSizes, size_t * _Nonnull numberOfInouts, int * _Nonnull epochs, int * _Nonnull miniBatchSize, float * _Nonnull eta, float * _Nonnull lambda) {
-    
-    // Very basic parsing of input parameters file.
-    // TODO: Needs to change that to something more flexible and with better input validation
-    
-    FILE *f1 = fopen(paraFile,"r");
-    if(!f1) {
-        fprintf(stdout,"%s: can't open the input parameters file.\n", PROGRAM_NAME);
-        return -1;
-    }
-    
-    char string[256];
-    int lineCount = 1;
-    int empty = 0;
-    while (1) {
-        fscanf(f1,"%s\n", string);
-        
-        if (lineCount == 1 && string[0] != '{') {
-            fatal(PROGRAM_NAME, "syntax error in the file for the input parameters.");
-        } else if (lineCount == 1) {
-            lineCount++;
-            continue;
-        } else if(string[0] == '\0') {
-            empty++;
-            if (empty > 1000) {
-                fatal(PROGRAM_NAME, "syntax error in the file for the input keys. File should end with <}>.");
-            }
-            continue;
-        }
-        
-        if (string[0] == '!') continue; // Comment line
-        if (string[0] == '}') break;    // End of file
-        
-        if (lineCount == 2) {
-            memcpy(dataSetName, string, strlen(string)*sizeof(char));
-        }
-        if (lineCount == 3) {
-            memcpy(dataSetFile, string, strlen(string)*sizeof(char));
-        }
-        if (lineCount == 4) {
-            parseArgument(string, "network definition", ntLayers, numberOfLayers);
-        }
-        if (lineCount == 5) {
-            parseArgument(string, "data divisions", dataDivisions, numberOfDataDivisions);
-        }
-        if (lineCount == 6) {
-            parseArgument(string, "classifications", classifications, numberOfClassifications);
-        }
-        if (lineCount == 7) {
-            parseArgument(string, "inouts", inoutSizes, numberOfInouts);
-        }
-        if (lineCount == 8) {
-            *epochs = atoi(string);
-        }
-        if (lineCount == 9) {
-            *miniBatchSize = atoi(string);
-        }
-        if (lineCount == 10) {
-            *eta = strtof(string, NULL);
-        }
-        if (lineCount == 11) {
-            *lambda = strtof(string, NULL);
-        }
-        lineCount++;
-    }
-    
-    if (*numberOfDataDivisions != 2) {
-        fatal(PROGRAM_NAME, " input data set should only be divided in two parts: one for training, one for testing.");
-    }
-    if (*numberOfInouts != 2) {
-        fatal(PROGRAM_NAME, "only define one size for inputs and one size for outputs.");
-    }
-    if (ntLayers[0] != inoutSizes[0] || ntLayers[(int)(*numberOfLayers)-1] != inoutSizes[1]) {
-        fatal(PROGRAM_NAME, "mismatch between size of network first/last layer and the nunmber of inputs/outputs.");
-    }
-    if (inoutSizes[1] < *numberOfClassifications || inoutSizes[1] > *numberOfClassifications) {
-        fatal(PROGRAM_NAME, "mismatch between number of classifications and the number of outputs.");
-    }
-    
-    return 0;
-}
-
-float **loadData(const char * _Nonnull dataSetName, const char * _Nonnull fileName, size_t * _Nonnull len1, size_t * _Nonnull len2) {
-    
-    float **dataSet = NULL;
-    // Load data set
-    // Right now this program basically only supports the Iris and
-    // the MNIST datasets
-    if (strcmp(dataSetName, "iris") == 0) { // Read Iris data
-        fprintf(stdout, "%s: load the Iris training data set.\n", PROGRAM_NAME);
-        dataSet = loadIris(fileName, len1);
-        *len2 = 5;
-        // Shuffle the original data set
-        shuffle(dataSet, *len1, *len2);
-    } else if (strcmp(dataSetName, "mnist") == 0) { // Read MNIST data
-        fprintf(stdout, "%s: load the MNIST training data set...\n", PROGRAM_NAME);
-        dataSet = loadMnist(fileName, len1, len2);
-        shuffle(dataSet, *len1, *len2);
-    } else {
-        fatal(PROGRAM_NAME, "training the network only supported for the Iris and the MNIST data Sets.");
-    }
-    return dataSet;
-}
-
-float * _Nonnull * _Nonnull loadTestData(const char * _Nonnull dataSetName, const char * _Nonnull fileName, size_t * _Nonnull len1, size_t * _Nonnull len2) {
-    
-    float **dataSet = NULL;
-    // Load the test data set. Currently only for the MNIST dataset
-    if (strcmp(dataSetName, "mnist") != 0) fatal(PROGRAM_NAME, "can only load test data for MNIST.");
-    fprintf(stdout, "%s: load the MNIST test data set...\n", PROGRAM_NAME);
-    dataSet = loadMnistTest(fileName, len1, len2);
-    return dataSet;
-}
-
-float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2, int * _Nonnull classifications, size_t numberOfClassifications, int * _Nonnull inoutSizes) {
-    
-    float **trainingData = NULL;
-    trainingData = floatmatrix(0, end-1, 0, (inoutSizes[0]+inoutSizes[1])-1);
-    *t1 = end;
-    *t2 = inoutSizes[0]+inoutSizes[1];
-    
-    if (inoutSizes[1] != numberOfClassifications) {
-        fatal(PROGRAM_NAME, "the number of classifications should be equal to the number of activations.");
-    }
-    
-    for (int i=0; i<end; i++) {
-        for (int j=0; j<inoutSizes[0]; j++) {
-            trainingData[i][j] = dataSet[i][j];
-        }
-        
-        // Binarization of the input ground-truth to get a one-hot-vector
-        for (int k=0; k<numberOfClassifications; k++) {
-            if (dataSet[i][inoutSizes[0]] == (float)classifications[k]) {
-                trainingData[i][inoutSizes[0]+k] = 1.0f;
-            } else trainingData[i][inoutSizes[0]+k] = 0.0f;
-        }
-    }
-    
-    return trainingData;
-}
-
-float * _Nonnull * _Nonnull getData(float * _Nonnull * _Nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2) {
-    
-    float **data = floatmatrix(0, end, 0, len2-1);
-    *t1 = end;
-    *t2 = len2;
-    
-    int idx = 0;
-    for (int i=(int)start; i<start+end; i++) {
-        for (int j=0; j<len2; j++) {
-            data[idx][j] = dataSet[i][j];
-        }
-        idx++;
-    }
-    return data;
-}
-
 void shuffle(float * _Nonnull * _Nonnull array, size_t len1, size_t len2) {
     
     float t[len2];
@@ -257,7 +98,7 @@ void shuffle(float * _Nonnull * _Nonnull array, size_t len1, size_t len2) {
     }
 }
 
-void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int * _Nonnull result, size_t * _Nonnull numberOfItems) {
+void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int  * _Nonnull result, size_t * _Nonnull numberOfItems) {
     int idx = 0;
     *numberOfItems = 0;
     

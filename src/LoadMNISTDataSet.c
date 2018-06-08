@@ -25,7 +25,7 @@ float * _Nullable * _Nullable readBinaryFile(const char * _Nonnull file, size_t 
         // So replace "train-images-idx3-ubyte" by "train-labels-idx1-ubyte" in the original path
         // Same assumption for the test set labels, replace t"10k-images-idx3-ubyte" by "t10k-labels-idx1-ubyte"
         // If we don't find the labels, we fatal...
-        char *labelFile = malloc(strlen(file)*sizeof(char));
+        char *labelFile = malloc((strlen(file)*10)*sizeof(char));
         memset(labelFile, 0, strlen(file)*sizeof(char));
         char *word = NULL;
         if (!testData) {

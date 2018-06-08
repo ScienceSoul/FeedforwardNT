@@ -15,7 +15,7 @@ iris
 {4,3}
 !
 !epochs
-30
+100
 !
 !Mini!batch!size
 10

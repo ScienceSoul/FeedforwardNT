@@ -14,6 +14,15 @@
 
 #include "NeuralNetwork.h"
 
+static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile);
+
+static void initNeuralData(void * _Nonnull self);
+static void loadData(void * _Nonnull self, const char * _Nonnull dataSetName, const char * _Nonnull trainFile, const char * _Nonnull testFile, bool testData);
+
+static float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2, int * _Nonnull classifications, size_t numberOfClassifications, int * _Nonnull inoutSizes);
+
+static float * _Nonnull * _Nonnull getData(float * _Nonnull * _Nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2);
+
 static weightNode * _Nonnull allocateWeightNode(void);
 static biasNode * _Nonnull allocateBiasNode(void);
 
@@ -32,22 +41,22 @@ static zNode * _Nonnull initZsList(int * _Nonnull ntLayers, size_t numberOfLayer
 static dcdwNode * _Nonnull initDcdwList(int * _Nonnull ntLayers, size_t numberOfLayers);
 static dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOfLayers);
 
-static void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nullable miniBatchSize);
-static void destroy(void * _Nonnull self);
+static void genesis(void * _Nonnull self);
+static void finale(void * _Nonnull self);
 
-static void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float * _Nullable * _Nullable testData, size_t tr1, size_t tr2, size_t * _Nullable ts1, size_t * _Nullable ts2, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nonnull inoutSizes, int * _Nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool * _Nullable showTotalCost);
+static void SDG(void * _Nonnull self, bool * _Nullable showTotalCost);
 
-static void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int miniBatchSize, int * _Nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda);
+static void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch);
 
-static void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda);
+static void updateWeightsBiases(void * _Nonnull self);
 
 static void batchAccumulation(void * _Nonnull self);
 
 static void * _Nullable backpropagation(void * _Nonnull self);
 
-static int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t ts1);
+static int evaluate(void * _Nonnull self);
 
-static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, int * _Nullable classifications, float lambda, bool convert);
+static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, bool convert);
 
 static void feedforward(void * _Nonnull self);
 
@@ -215,7 +224,7 @@ static void setUpOpenCLDevice(GPUCompute *compute) {
     fprintf(stdout, "%s: done.\n", PROGRAM_NAME);
 }
 
-void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore) {
+static void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore) {
     
     cl_int err;
     
@@ -239,38 +248,206 @@ void inference(void * _Nonnull self, gpuInference * _Nonnull gpuInferenceStore) 
 
 #endif
 
-weightNode * _Nonnull allocateWeightNode(void) {
+static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile) {
+    
+    NeuralNetwork *nn = (NeuralNetwork *)self;
+    
+    // Very basic parsing of input parameters file.
+    // TODO: Needs to change that to something more flexible and with better input validation
+    
+    FILE *f1 = fopen(paraFile,"r");
+    if(!f1) {
+        fprintf(stdout,"%s: can't open the input parameters file.\n", PROGRAM_NAME);
+        return -1;
+    }
+    
+    char string[256];
+    int lineCount = 1;
+    int empty = 0;
+    while (1) {
+        fscanf(f1,"%s\n", string);
+        
+        if (lineCount == 1 && string[0] != '{') {
+            fatal(PROGRAM_NAME, "syntax error in the file for the input parameters.");
+        } else if (lineCount == 1) {
+            lineCount++;
+            continue;
+        } else if(string[0] == '\0') {
+            empty++;
+            if (empty > 1000) {
+                fatal(PROGRAM_NAME, "syntax error in the file for the input keys. File should end with <}>.");
+            }
+            continue;
+        }
+        
+        if (string[0] == '!') continue; // Comment line
+        if (string[0] == '}') break;    // End of file
+        
+        if (lineCount == 2) {
+            memcpy(dataSetName, string, strlen(string)*sizeof(char));
+        }
+        if (lineCount == 3) {
+            memcpy(dataSetFile, string, strlen(string)*sizeof(char));
+        }
+        if (lineCount == 4) {
+            parseArgument(string, "network definition", nn->parameters->ntLayers, &nn->parameters->numberOfLayers);
+        }
+        if (lineCount == 5) {
+            parseArgument(string, "data divisions", nn->parameters->dataDivisions, &nn->parameters->numberOfDataDivisions);
+        }
+        if (lineCount == 6) {
+            parseArgument(string, "classifications", nn->parameters->classifications, &nn->parameters->numberOfClassifications);
+        }
+        if (lineCount == 7) {
+            parseArgument(string, "inouts", nn->parameters->inoutSizes, &nn->parameters->numberOfInouts);
+        }
+        if (lineCount == 8) {
+            nn->parameters->epochs = atoi(string);
+        }
+        if (lineCount == 9) {
+            nn->parameters->miniBatchSize = atoi(string);
+        }
+        if (lineCount == 10) {
+            nn->parameters->eta = strtof(string, NULL);
+        }
+        if (lineCount == 11) {
+            nn->parameters->lambda = strtof(string, NULL);
+        }
+        lineCount++;
+    }
+    
+    if (nn->parameters->numberOfDataDivisions != 2) {
+        fatal(PROGRAM_NAME, " input data set should only be divided in two parts: one for training, one for testing.");
+    }
+    if (nn->parameters->numberOfInouts != 2) {
+        fatal(PROGRAM_NAME, "only define one size for inputs and one size for outputs.");
+    }
+    if (nn->parameters->ntLayers[0] != nn->parameters->inoutSizes[0] || nn->parameters->ntLayers[(int)(nn->parameters->numberOfLayers)-1] != nn->parameters->inoutSizes[1]) {
+        fatal(PROGRAM_NAME, "mismatch between size of network first/last layer and the nunmber of inputs/outputs.");
+    }
+    if (nn->parameters->inoutSizes[1] < nn->parameters->numberOfClassifications || nn->parameters->inoutSizes[1] > nn->parameters->numberOfClassifications) {
+        fatal(PROGRAM_NAME, "mismatch between number of classifications and the number of outputs.");
+    }
+    
+    return 0;
+}
+
+static void initNeuralData(void * _Nonnull self) {
+    
+    NeuralNetwork *nn = (NeuralNetwork *)self;
+    
+    nn->data->training = (training *)malloc(sizeof(training));
+    nn->data->training->set = NULL;
+    nn->data->training->m = 0;
+    nn->data->training->n = 0;
+    
+    nn->data->test = (test *)malloc(sizeof(test));
+    nn->data->test->set = NULL;
+    nn->data->test->m = 0;
+    nn->data->test->n = 0;
+    
+    nn->data->validation = (validation *)malloc(sizeof(validation));
+    nn->data->validation->set = NULL;
+    nn->data->validation->m = 0;
+    nn->data->validation->n = 0;
+}
+
+static void loadData(void * _Nonnull self, const char * _Nonnull dataSetName, const char * _Nonnull trainFile, const char * _Nonnull testFile, bool testData) {
+    
+    size_t len1=0, len2=0;
+    float **raw_training = NULL;
+    
+    NeuralNetwork *nn = (NeuralNetwork *)self;
+    
+    fprintf(stdout, "%s: load the <%s> training data set.\n", PROGRAM_NAME, dataSetName);
+    raw_training = nn->data->training->reader(trainFile, &len1, &len2);
+    shuffle(raw_training, len1, len2);
+    
+    nn->data->training->set = createTrainigData(raw_training, 0, nn->parameters->dataDivisions[0], &nn->data->training->m, &nn->data->training->n, nn->parameters->classifications, nn->parameters->numberOfClassifications, nn->parameters->inoutSizes);
+    
+    if (testData) {
+        nn->data->test->set = nn->data->test->reader(testFile, &nn->data->test->m, &nn->data->test->n);
+        nn->data->validation->set = getData(raw_training, len1, len2, nn->parameters->dataDivisions[0], nn->parameters->dataDivisions[1], &nn->data->validation->m, &nn->data->validation->n);
+    } else {
+        nn->data->test->set = getData(raw_training, len1, len2, nn->parameters->dataDivisions[0], nn->parameters->dataDivisions[1], &nn->data->test->m, &nn->data->test->n);
+    }
+}
+
+static float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2, int * _Nonnull classifications, size_t numberOfClassifications, int * _Nonnull inoutSizes) {
+    
+    float **trainingData = NULL;
+    trainingData = floatmatrix(0, end-1, 0, (inoutSizes[0]+inoutSizes[1])-1);
+    *t1 = end;
+    *t2 = inoutSizes[0]+inoutSizes[1];
+    
+    if (inoutSizes[1] != numberOfClassifications) {
+        fatal(PROGRAM_NAME, "the number of classifications should be equal to the number of activations.");
+    }
+    
+    for (int i=0; i<end; i++) {
+        for (int j=0; j<inoutSizes[0]; j++) {
+            trainingData[i][j] = dataSet[i][j];
+        }
+        
+        // Binarization of the input ground-truth to get a one-hot-vector
+        for (int k=0; k<numberOfClassifications; k++) {
+            if (dataSet[i][inoutSizes[0]] == (float)classifications[k]) {
+                trainingData[i][inoutSizes[0]+k] = 1.0f;
+            } else trainingData[i][inoutSizes[0]+k] = 0.0f;
+        }
+    }
+    
+    return trainingData;
+}
+
+static float * _Nonnull * _Nonnull getData(float * _Nonnull * _Nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2) {
+    
+    float **data = floatmatrix(0, end, 0, len2-1);
+    *t1 = end;
+    *t2 = len2;
+    
+    int idx = 0;
+    for (int i=(int)start; i<start+end; i++) {
+        for (int j=0; j<len2; j++) {
+            data[idx][j] = dataSet[i][j];
+        }
+        idx++;
+    }
+    return data;
+}
+
+static weightNode * _Nonnull allocateWeightNode(void) {
     
     weightNode *list = (weightNode *)malloc(sizeof(weightNode));
     *list = (weightNode){.m=0, .n=0, .w=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-biasNode * _Nonnull allocateBiasNode(void) {
+static biasNode * _Nonnull allocateBiasNode(void) {
     biasNode *list = (biasNode *)malloc(sizeof(biasNode));
     *list = (biasNode){.n=0, .b=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-activationNode * _Nonnull allocateActivationNode(void) {
+static activationNode * _Nonnull allocateActivationNode(void) {
     activationNode *list = (activationNode *)malloc(sizeof(activationNode));
     *list = (activationNode){.n=0, .a=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-zNode * _Nonnull allocateZNode(void) {
+static zNode * _Nonnull allocateZNode(void) {
     zNode *list = (zNode *)malloc(sizeof(zNode));
     *list = (zNode){.n=0, .z=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-dcdwNode * _Nonnull allocateDcdwNode(void) {
+static dcdwNode * _Nonnull allocateDcdwNode(void) {
     dcdwNode *list = (dcdwNode *)malloc(sizeof(dcdwNode));
     *list = (dcdwNode){.m=0, .n=0, .dcdw=NULL, .next=NULL, .previous=NULL};
     return list;
 }
 
-dcdbNode * _Nonnull allocateDcdbNode(void) {
+static dcdbNode * _Nonnull allocateDcdbNode(void) {
     dcdbNode *list = (dcdbNode *)malloc(sizeof(dcdbNode));
     *list = (dcdbNode){.n=0, .dcdb=NULL, .next=NULL, .previous=NULL};
     return list;
@@ -284,7 +461,7 @@ dcdbNode * _Nonnull allocateDcdbNode(void) {
 //
 //  Return a pointer to the list head.
 //
-weightNode * _Nonnull initWeightsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
+static weightNode * _Nonnull initWeightsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     weightNode *weightsList = allocateWeightNode();
     
@@ -328,7 +505,7 @@ weightNode * _Nonnull initWeightsList(int * _Nonnull ntLayers, size_t numberOfLa
 //
 //  Return a pointer to the list head.
 //
-biasNode * _Nonnull initBiasesList(int * _Nonnull ntLayers, size_t numberOfLayers) {
+static biasNode * _Nonnull initBiasesList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     biasNode *biasesList = allocateBiasNode();
     
@@ -366,7 +543,7 @@ biasNode * _Nonnull initBiasesList(int * _Nonnull ntLayers, size_t numberOfLayer
 //
 //  Return a pointer to the list head.
 //
-activationNode * _Nonnull initActivationsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
+static activationNode * _Nonnull initActivationsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     activationNode *activationsList = allocateActivationNode();
     
@@ -402,7 +579,7 @@ activationNode * _Nonnull initActivationsList(int * _Nonnull ntLayers, size_t nu
 //
 //  Return a pointer to the list head.
 //
-zNode * _Nonnull initZsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
+static zNode * _Nonnull initZsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     zNode *zsList = allocateZNode();
     
@@ -438,7 +615,7 @@ zNode * _Nonnull initZsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
 //
 //  Return a pointer to the list head.
 //
-dcdwNode * _Nonnull initDcdwList(int * _Nonnull ntLayers, size_t numberOfLayers) {
+static dcdwNode * _Nonnull initDcdwList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     dcdwNode *dcdwList = allocateDcdwNode();
     
@@ -470,7 +647,7 @@ dcdwNode * _Nonnull initDcdwList(int * _Nonnull ntLayers, size_t numberOfLayers)
 //
 //  Return a pointer to the list head.
 //
-dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOfLayers) {
+static dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
     dcdbNode *dcdbList = allocateDcdbNode();
     
@@ -498,13 +675,25 @@ dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOfLayers)
 //
 // Allocate memory for a neural network
 //
-NeuralNetwork * _Nonnull allocateNeuralNetwork(void) {
+NeuralNetwork * _Nonnull loadNeuralNetwork(void) {
     
     NeuralNetwork *nn = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
     *nn = (NeuralNetwork){.weightsList=NULL, .biasesList=NULL, .activationsList=NULL, .zsList=NULL,
                           .dcdwsList=NULL, .dcdbsList=NULL, .delta_dcdwsList=NULL, .delta_dcdbsList=NULL};
-    nn->create = create;
-    nn->destroy = destroy;
+    
+    nn->parameters = (parameters *)malloc(sizeof(parameters));
+    nn->parameters->epochs = 0;
+    nn->parameters->miniBatchSize = 0;
+    nn->parameters->eta = 0.0f;
+    nn->parameters->lambda = 0.0f;
+    memset(nn->parameters->ntLayers, 0, sizeof(nn->parameters->ntLayers));
+    memset(nn->parameters->classifications, 0, sizeof(nn->parameters->classifications));
+    memset(nn->parameters->dataDivisions, 0, sizeof(nn->parameters->dataDivisions));
+    memset(nn->parameters->inoutSizes, 0, sizeof(nn->parameters->inoutSizes));
+    nn->load = loadParameters;
+    
+    nn->genesis = genesis;
+    nn->finale = finale;
     nn->SDG = SDG;
     nn->miniBatch = miniBatch;
     nn->updateWeightsBiases = updateWeightsBiases;
@@ -520,21 +709,27 @@ NeuralNetwork * _Nonnull allocateNeuralNetwork(void) {
 //
 //  Create the network layers, i.e. allocates memory for the weight, bias, activation, z, dC/dx and dC/db data structures
 //
-void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nullable miniBatchSize) {
+static void genesis(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
-    nn->number_of_layers = numberOfLayers;
-    nn->max_number_of_nodes_in_layer = max_array(ntLayers, numberOfLayers);
+    nn->example_idx = 0;
+    nn->number_of_features = 0;
+    nn->number_of_layers = nn->parameters->numberOfLayers;
+    nn->max_number_of_nodes_in_layer = max_array(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
     
-    nn->weightsList = initWeightsList(ntLayers, numberOfLayers);
-    nn->biasesList = initBiasesList(ntLayers, numberOfLayers);
-    nn->activationsList = initActivationsList(ntLayers, numberOfLayers);
-    nn->zsList = initZsList(ntLayers, numberOfLayers);
-    nn->dcdwsList = initDcdwList(ntLayers, numberOfLayers);
-    nn->dcdbsList = initDcdbList(ntLayers, numberOfLayers);
-    nn->delta_dcdwsList = initDcdwList(ntLayers, numberOfLayers);
-    nn->delta_dcdbsList = initDcdbList(ntLayers, numberOfLayers);
+    nn->data = (data *)malloc(sizeof(data));
+    nn->data->init = initNeuralData;
+    nn->data->load = loadData;
+    
+    nn->weightsList = initWeightsList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->biasesList = initBiasesList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->activationsList = initActivationsList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->zsList = initZsList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->dcdwsList = initDcdwList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->dcdbsList = initDcdbList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->delta_dcdwsList = initDcdwList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->delta_dcdbsList = initDcdbList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
     
 #ifdef USE_OPENCL_GPU
     // Allocate the GPU compute environment
@@ -547,9 +742,22 @@ void create(void * _Nonnull self, int * _Nonnull ntLayers, size_t numberOfLayers
 //
 // Free-up all the memory used by a network
 //
-void destroy(void * _Nonnull self) {
+static void finale(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
+    
+    free_fmatrix(nn->data->training->set, 0, nn->data->training->m, 0, nn->data->training->n);
+    free_fmatrix(nn->data->test->set, 0, nn->data->test->m, 0, nn->data->test->n);
+    if (nn->data->validation->set != NULL) free_fmatrix(nn->data->validation->set, 0, nn->data->validation->m, 0, nn->data->validation->n);
+    nn->data->training->reader = NULL;
+    nn->data->test->reader = NULL;
+    free(nn->data->training);
+    free(nn->data->test);
+    free(nn->data->validation);
+    nn->data->init = NULL;
+    nn->data->load = NULL;
+    free(nn->data);
+    free(nn->parameters);
     
     weightNode *wTail = nn->weightsList;
     while (wTail != NULL && wTail->next != NULL) {
@@ -699,33 +907,33 @@ void destroy(void * _Nonnull self) {
 #endif
 }
 
-void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float * _Nullable * _Nullable testData, size_t tr1, size_t tr2, size_t * _Nullable ts1, size_t * _Nullable ts2, int * _Nonnull ntLayers, size_t numberOfLayers, int * _Nonnull inoutSizes, int * _Nullable classifications, int epochs, int miniBatchSize, float eta, float lambda, bool * _Nullable showTotalCost) {
+static void SDG(void * _Nonnull self, bool * _Nullable showTotalCost) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
-    nn->number_of_features = inoutSizes[0];
+    nn->number_of_features = nn->parameters->inoutSizes[0];
     
     // Stochastic gradient descent
-    float **miniBatch = floatmatrix(0, miniBatchSize-1, 0, tr2-1);
+    float **miniBatch = floatmatrix(0, nn->parameters->miniBatchSize-1, 0, nn->data->training->n-1);
     nn->batch = miniBatch;
     int delta;
-    for (int k=1; k<=epochs; k++) {
+    for (int k=1; k<=nn->parameters->epochs; k++) {
         delta = 0;
-        shuffle(trainingData, tr1, tr2);
+        shuffle(nn->data->training->set, nn->data->training->m, nn->data->training->n);
         
-        fprintf(stdout, "%s: Epoch {%d/%d}:\n", PROGRAM_NAME, k, epochs);
+        fprintf(stdout, "%s: Epoch {%d/%d}:\n", PROGRAM_NAME, k, nn->parameters->epochs);
         double train_time = 0.0;
         const int percentPrint = 5;
-        int train_size = (int)tr1/miniBatchSize;
+        int train_size = (int)nn->data->training->m/nn->parameters->miniBatchSize;
         int step = train_size / (100/percentPrint);
         int nextPrint = step;
         int i = 0;
-        for (int l=1; l<=(int)tr1/miniBatchSize; l++) {
-            memcpy(*miniBatch, *trainingData+delta, (miniBatchSize*tr2)*sizeof(float));
+        for (int l=1; l<=(int)nn->data->training->m/nn->parameters->miniBatchSize; l++) {
+            memcpy(*miniBatch, *nn->data->training->set+delta, (nn->parameters->miniBatchSize*(int)nn->data->training->n)*sizeof(float));
             double rt = realtime();
-            nn->miniBatch((void *)nn, miniBatch, miniBatchSize, ntLayers, numberOfLayers, tr1, eta, lambda);
+            nn->miniBatch((void *)nn, miniBatch);
             rt = realtime() - rt;
             train_time += rt;
-            delta = delta + ((int)miniBatchSize*(int)tr2);
+            delta = delta + (nn->parameters->miniBatchSize*(int)nn->data->training->n);
             
             i++;
             if (i >= nextPrint) {
@@ -737,22 +945,22 @@ void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float *
         }
         fprintf(stdout, "%s: time to complete all training data set (s): %f\n", PROGRAM_NAME, train_time);
         
-        if (testData != NULL) {
-            fprintf(stdout, "%s: Epoch {%d/%d}: testing network with {%zu} inputs:\n", PROGRAM_NAME, k, epochs, *ts1);
-            int result = nn->evaluate(self, testData, *ts1);
-            fprintf(stdout, "%s: Epoch {%d/%d}: {%d} / {%zu}.\n", PROGRAM_NAME, k, epochs, result, *ts1);
+        if (nn->data->test->set != NULL) {
+            fprintf(stdout, "%s: Epoch {%d/%d}: testing network with {%zu} inputs:\n", PROGRAM_NAME, k, nn->parameters->epochs, nn->data->test->m);
+            int result = nn->evaluate(self);
+            fprintf(stdout, "%s: Epoch {%d/%d}: {%d} / {%zu}.\n", PROGRAM_NAME, k, nn->parameters->epochs, result, nn->data->test->m);
         }
         
         if (showTotalCost != NULL) {
             if (*showTotalCost == true) {
                 double rt = realtime();
-                float cost = nn->totalCost(self, trainingData, tr1, NULL, lambda, false);
+                float cost = nn->totalCost(self, nn->data->training->set, nn->data->training->m, false);
                 rt = realtime() -  rt;
                 fprintf(stdout, "%s: cost on training data: {%f} / Time (s): %f\n", PROGRAM_NAME, cost, rt);
                 
-                if (testData != NULL) {
+                if (nn->data->test->set != NULL) {
                     double rt = realtime();
-                    cost = nn->totalCost(self, testData, *ts1, classifications, lambda, true);
+                    cost = nn->totalCost(self, nn->data->test->set, nn->data->test->m, true);
                     rt = realtime() -  rt;
                     fprintf(stdout, "%s: cost on test data: {%f} / Time (s): %f\n", PROGRAM_NAME, cost, rt);
                 }
@@ -761,10 +969,10 @@ void SDG(void * _Nonnull self, float * _Nonnull * _Nonnull trainingData, float *
         fprintf(stdout, "\n");
     }
 
-    free_fmatrix(miniBatch, 0, miniBatchSize-1, 0, tr2-1);
+    free_fmatrix(miniBatch, 0, nn->parameters->miniBatchSize-1, 0, nn->data->training->n-1);
 }
 
-void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int miniBatchSize, int * _Nonnull ntLayers, size_t numberOfLayers, size_t tr1, float eta, float lambda) {
+static void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -793,7 +1001,7 @@ void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int 
     }
     
     double rt = realtime();
-    for (int i=0; i<miniBatchSize; i++) {
+    for (int i=0; i<nn->parameters->miniBatchSize; i++) {
         nn->example_idx = i;
         nn->backpropagation((void *)nn);
         nn->batchAccumulation((void *)nn);
@@ -803,10 +1011,10 @@ void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch, int 
     fprintf(stdout, "%s: time to complete a single mini-batch (s): %f\n", PROGRAM_NAME, rt);
 #endif
     
-    nn->updateWeightsBiases((void *)nn, miniBatchSize, tr1, eta, lambda);
+    nn->updateWeightsBiases((void *)nn);
 }
 
-void batchAccumulation(void * _Nonnull self) {
+static void batchAccumulation(void * _Nonnull self) {
     
     // Accumulate dcdw and dc/db
     
@@ -832,7 +1040,7 @@ void batchAccumulation(void * _Nonnull self) {
     }
 }
 
-void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, float eta, float lambda) {
+static void updateWeightsBiases(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -842,7 +1050,7 @@ void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, fl
     while (wNodePt != NULL) {
         for (int i=0; i<wNodePt->m; i++) {
             for (int j=0; j<wNodePt->n; j++) {
-                wNodePt->w[i][j] = (1.0f-eta*(lambda/tr1))*wNodePt->w[i][j] - (eta/miniBatchSize)*dcdwNodePt->dcdw[i][j];
+                wNodePt->w[i][j] = (1.0f-((nn->parameters->eta*nn->parameters->lambda)/(float)nn->data->training->m))*wNodePt->w[i][j] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdwNodePt->dcdw[i][j];
             }
         }
         wNodePt = wNodePt->next;
@@ -854,7 +1062,7 @@ void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, fl
     dcdbNode *dcdbNodePt = nn->dcdbsList;
     while (bNodePt != NULL) {
         for (int i=0; i<bNodePt->n; i++) {
-            bNodePt->b[i] = bNodePt->b[i] - (eta/miniBatchSize)*dcdbNodePt->dcdb[i];
+            bNodePt->b[i] = bNodePt->b[i] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdbNodePt->dcdb[i];
         }
         bNodePt = bNodePt->next;
         dcdbNodePt = dcdbNodePt->next;
@@ -896,7 +1104,7 @@ void updateWeightsBiases(void * _Nonnull self, int miniBatchSize, size_t tr1, fl
 //
 //  Return the gradient of the cross-entropy cost function C_x layers by layers
 //
-void * _Nullable backpropagation(void * _Nonnull self) {
+static void * _Nullable backpropagation(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -927,7 +1135,7 @@ void * _Nullable backpropagation(void * _Nonnull self) {
     memset(buffer, 0.0f, sizeof(buffer));
     
     // Compute delta
-    int k = nn->number_of_features;
+    int k = (int)nn->number_of_features;
     for (int i=0; i<aTail->n; i++) {
         delta[i] = aTail->a[i] - nn->batch[nn->example_idx][k];
         k++;
@@ -997,7 +1205,7 @@ void * _Nullable backpropagation(void * _Nonnull self) {
     return NULL;
 }
 
-int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t ts1) {
+static int evaluate(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1005,7 +1213,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
     activationNode *aNodePt = NULL;
     
     int sum = 0;
-    for (int k=0; k<ts1; k++) {
+    for (int k=0; k<nn->data->test->m; k++) {
 #ifdef USE_OPENCL_GPU
         cl_int err;
         gpuInference *inferenceNodePt = nn->compute->gpuInferenceStore;
@@ -1021,7 +1229,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
 #else
         aNodePt = nn->activationsList;
         for (int i=0; i<nn->number_of_features; i++) {
-            aNodePt->a[i] = testData[k][i];
+            aNodePt->a[i] = nn->data->test->set[k][i];
         }
 #endif
         double rt = realtime();
@@ -1049,7 +1257,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
 
 #endif
         results = (float)argmax(aNodePt->a, aNodePt->n);
-        sum = sum + (results == testData[k][nn->number_of_features]);
+        sum = sum + (results == nn->data->test->set[k][nn->number_of_features]);
     }
     
     return sum;
@@ -1058,7 +1266,7 @@ int evaluate(void * _Nonnull self, float * _Nonnull * _Nonnull testData, size_t 
 //
 //  Compute the total cost function using a cross-entropy formulation
 //
-float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, int * _Nullable classifications, float lambda, bool convert) {
+static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, bool convert) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
@@ -1108,12 +1316,12 @@ float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m
         memset(y, 0.0f, sizeof(y));
         if (convert == true) {
             for (int j=0; j<aNodePt->n; j++) {
-                if (data[i][nn->number_of_features] == classifications[j]) {
+                if (data[i][nn->number_of_features] == nn->parameters->classifications[j]) {
                     y[j] = 1.0f;
                 }
             }
         } else {
-            int idx = nn->number_of_features;
+            int idx = (int)nn->number_of_features;
             for (int j=0; j<aNodePt->n; j++) {
                 y[j] = data[i][idx];
                 idx++;
@@ -1128,7 +1336,7 @@ float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m
             sum = sum + (norm*norm);
             wNodePt = wNodePt->next;
         }
-        cost = cost + 0.5f*(lambda/m)*sum;
+        cost = cost + 0.5f*(nn->parameters->lambda/(float)m)*sum;
     }
     
     return cost;
@@ -1137,7 +1345,7 @@ float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m
 //
 //  Return the output of the network for a given activation input
 //
-void feedforward(void * _Nonnull self) {
+static void feedforward(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     

@@ -6,29 +6,14 @@
 //
 
 #include "NeuralNetwork.h"
+#include "LoadIrisDataSet.h"
+#include "LoadMNISTDataSet.h"
 
 int main(int argc, const char * argv[]) {
     
-    float **dataSet = NULL;
-    float **trainingData = NULL, **testData = NULL, **validationData = NULL;
-    
     char dataSetName[256];
-    char dataSetFile[256];
-    char testSetFile[256];
-    int epochs, miniBatchSize, ntLayers[100], dataDivisions[2], classifications[100], inoutSizes[2];
-    float eta, lambda;
-    
-    size_t len1=0, len2=0, tr1=0, tr2=0, ts1=0, ts2=0, tv1=0, tv2=0;
-    size_t numberOfLayers=0, numberOfDataDivisions=0, numberOfClassifications=0, numberOfInouts=0;
-    
-    typedef struct testing {
-        float * _Nonnull * _Nonnull (* _Nullable create) (float * _Nonnull * _Nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2);
-    } testing;
-    typedef struct validation {
-        float * _Nonnull * _Nonnull (* _Nullable create) (float * _Nonnull * _Nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2);
-    } validation;
-    testing *test = NULL;
-    validation *validate = NULL;
+    char trainFile[1024];
+    char testFile[1024];
     
     if (argc < 2) {
         fatal(PROGRAM_NAME, "missing argument for the input parameters file.");
@@ -40,6 +25,7 @@ int main(int argc, const char * argv[]) {
     bool availableTestData = false;
     bool err = false;
     
+    memset(testFile, 0, sizeof(testFile));
     if (argc >= 3 && argc < 4) {
         if (strcmp(argv[2], "-metal") == 0) {
             metal = true;
@@ -52,9 +38,9 @@ int main(int argc, const char * argv[]) {
         } else {
             if (strcmp(argv[2], "-test-data") == 0 || strcmp(argv[3], "-test-data") == 0) {
                 if (strcmp(argv[2], "-test-data") == 0) {
-                    strncpy(testSetFile, argv[3], 256);
+                    strncpy(testFile, argv[3], 256);
                 } else if (strcmp(argv[3], "-test-data") == 0) {
-                    strncpy(testSetFile, argv[2], 256);
+                    strncpy(testFile, argv[2], 256);
                 }
                 availableTestData = true;
             } else {
@@ -65,9 +51,9 @@ int main(int argc, const char * argv[]) {
         if (strcmp(argv[2], "-metal") == 0) {
             metal = true;
             if (strcmp(argv[3], "-test-data") == 0) {
-                strncpy(testSetFile, argv[4], 256);
+                strncpy(testFile, argv[4], 256);
             } else if (strcmp(argv[4], "-test-data") == 0) {
-                strncpy(testSetFile, argv[3], 256);
+                strncpy(testFile, argv[3], 256);
             } else {
                 err = true;
             }
@@ -75,9 +61,9 @@ int main(int argc, const char * argv[]) {
         } else if (strcmp(argv[3], "-metal") == 0) {
             metal = true;
             if (strcmp(argv[2], "-test-data") == 0) {
-                strncpy(testSetFile, argv[4], 256);
+                strncpy(testFile, argv[4], 256);
             } else if (strcmp(argv[4], "-test-data") == 0) {
-                strncpy(testSetFile, argv[2], 256);
+                strncpy(testFile, argv[2], 256);
             } else {
                 err = true;
             }
@@ -85,9 +71,9 @@ int main(int argc, const char * argv[]) {
         } else if (strcmp(argv[4], "-metal") == 0) {
             metal = true;
             if (strcmp(argv[2], "-test-data") == 0) {
-                strncpy(testSetFile, argv[3], 256);
+                strncpy(testFile, argv[3], 256);
             } else if (strcmp(argv[3], "-test-data") == 0) {
-                strncpy(testSetFile, argv[2], 256);
+                strncpy(testFile, argv[2], 256);
             } else {
                 err = true;
             }
@@ -100,48 +86,42 @@ int main(int argc, const char * argv[]) {
     if (metal) {
         fatal(PROGRAM_NAME, "Metal acceleration is not imnplemented yet.");
     }
-    if (availableTestData) {
-        fprintf(stdout, "%s: used test data from test data set.\n", PROGRAM_NAME);
-        validate = (validation *)malloc(sizeof(validation));
-        validate->create = getData;
-    } else {
-        test = (testing *)malloc(sizeof(testing));
-        test->create = getData;
-    }
     
     memset(dataSetName, 0, sizeof(dataSetName));
-    memset(dataSetFile, 0, sizeof(dataSetFile));
+    memset(trainFile, 0, sizeof(trainFile));
     
-    memset(ntLayers, 0, sizeof(ntLayers));
-    memset(dataDivisions, 0, sizeof(dataDivisions));
-    memset(classifications, 0, sizeof(classifications));
-    memset(inoutSizes, 0, sizeof(inoutSizes));
-    
-    fprintf(stdout, "%s: load input parameters:\n", PROGRAM_NAME);
-    if (loadParameters(argv[1], dataSetName, dataSetFile, ntLayers, &numberOfLayers, dataDivisions, &numberOfDataDivisions, classifications, &numberOfClassifications, inoutSizes, &numberOfInouts, &epochs, &miniBatchSize, &eta, &lambda) != 0) {
+    // Load the neural network and its parameters...
+    fprintf(stdout, "%s: load the network and its input parameters:\n", PROGRAM_NAME);
+    NeuralNetwork *neural = loadNeuralNetwork();
+    if (neural->load((void *)neural, argv[1], dataSetName, trainFile) != 0) {
         fatal(PROGRAM_NAME, "failure reading input parameters.");
     }
     fprintf(stdout, "%s: done.\n", PROGRAM_NAME);
     
-    dataSet = loadData(dataSetName, dataSetFile, &len1, &len2);
-    trainingData = createTrainigData(dataSet, 0, dataDivisions[0], &tr1, &tr2, classifications, numberOfClassifications, inoutSizes);
+    // Create the structure of the neural network and load the data to train/test it
+    fprintf(stdout, "%s: create the network internal structure:\n", PROGRAM_NAME);
+    neural->genesis((void *)neural);
     
-    if (availableTestData) {
-        fprintf(stdout, "\n");
-        testData = loadTestData(dataSetName, testSetFile, &ts1, &ts2);
-        // Create a validation data set from the training set
-        validationData = validate->create(dataSet, len1, len2, dataDivisions[0], dataDivisions[1], &tv1, &tv2);
+    // Allocate and initialize the network data containers
+    neural->data->init((void *)neural);
+    
+    if (strcmp(dataSetName, "iris") == 0) {
+        neural->data->training->reader = loadIris;
+    } else if (strcmp(dataSetName, "mnist") == 0) {
+        neural->data->training->reader = loadMnist;
     } else {
-        // No test data set available, create the test data from the training set
-        testData = test->create(dataSet, len1, len2, dataDivisions[0], dataDivisions[1], &ts1, &ts2);
+        fatal(PROGRAM_NAME, "Program can only train for Iris or MNIST data sets.");
     }
     
-    free_fmatrix(dataSet, 0, len1-1, 0, len2-1);
-    if (test != NULL) free(test);
-    if (validate != NULL)free(validate);
+    if (availableTestData) {
+        if (strcmp(dataSetName, "mnist") != 0) fatal(PROGRAM_NAME, "Program can only use MNIST test data.");
+        fprintf(stdout, "%s: use test data from test data set.\n", PROGRAM_NAME);
+        neural->data->test->reader = loadMnistTest;
+    }
     
-    NeuralNetwork *neural = allocateNeuralNetwork();
-    neural->create((void *)neural, ntLayers, numberOfLayers, &miniBatchSize);
+    // Load all data
+    neural->data->load((void *)neural, dataSetName, trainFile, testFile, availableTestData);
+    fprintf(stdout, "%s: done.\n", PROGRAM_NAME);
     
     fprintf(stdout, "%s: train neural network with the %s data set.\n", PROGRAM_NAME, dataSetName);
 #ifdef COMPUTE_TOTAL_COST
@@ -149,14 +129,10 @@ int main(int argc, const char * argv[]) {
 #else
     bool showCost = false;
 #endif
-    neural->SDG((void *)neural, trainingData, testData, tr1, tr2, &ts1, &ts2, ntLayers, numberOfLayers, inoutSizes, classifications, epochs, miniBatchSize, eta, lambda, &showCost);
-    neural->destroy((void *)neural);
+    neural->SDG((void *)neural, &showCost);
+    neural->finale((void *)neural);
     fprintf(stdout, "%s: all done.\n", PROGRAM_NAME);
-    
     free(neural);
-    free_fmatrix(trainingData, 0, tr1-1, 0, tr2-1);
-    free_fmatrix(testData, 0, ts1-1, 0, ts2-1);
-    if (validationData != NULL) free_fmatrix(validationData, 0, tv1-1, 0, tv2-1);
     
     return 0;
 }

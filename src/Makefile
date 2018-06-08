@@ -41,7 +41,7 @@ $(MAIN): $(OBJS)
     $(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
 
 .c.o:
-    (CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
+    $(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
     $(RM) *.o *~ $(MAIN)

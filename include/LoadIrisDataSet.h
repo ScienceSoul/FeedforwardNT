@@ -12,5 +12,5 @@
 
 #endif /* LoadIrisDataSet_h */
 
-float * _Nonnull * _Nonnull loadIris(const char * _Nonnull file, size_t * _Nonnull len);
+float * _Nonnull * _Nonnull loadIris(const char * _Nonnull file, size_t * _Nonnull len1, size_t * _Nonnull len2);
 float * _Nullable * _Nullable readFile(const char * _Nonnull file, size_t * _Nonnull len);
