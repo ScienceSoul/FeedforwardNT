@@ -44,7 +44,7 @@ static dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOf
 static void genesis(void * _Nonnull self);
 static void finale(void * _Nonnull self);
 
-static void SDG(void * _Nonnull self, bool * _Nullable showTotalCost);
+static void computeNeural(void * _Nonnull self, bool * _Nullable showTotalCost);
 
 static void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch);
 
@@ -694,7 +694,7 @@ NeuralNetwork * _Nonnull loadNeuralNetwork(void) {
     
     nn->genesis = genesis;
     nn->finale = finale;
-    nn->SDG = SDG;
+    nn->compute = computeNeural;
     nn->miniBatch = miniBatch;
     nn->updateWeightsBiases = updateWeightsBiases;
     nn->batchAccumulation = batchAccumulation;
@@ -907,7 +907,7 @@ static void finale(void * _Nonnull self) {
 #endif
 }
 
-static void SDG(void * _Nonnull self, bool * _Nullable showTotalCost) {
+static void computeNeural(void * _Nonnull self, bool * _Nullable showTotalCost) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     nn->number_of_features = nn->parameters->inoutSizes[0];

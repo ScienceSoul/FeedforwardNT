@@ -129,7 +129,7 @@ int main(int argc, const char * argv[]) {
 #else
     bool showCost = false;
 #endif
-    neural->SDG((void *)neural, &showCost);
+    neural->compute((void *)neural, &showCost);
     neural->finale((void *)neural);
     fprintf(stdout, "%s: all done.\n", PROGRAM_NAME);
     free(neural);
