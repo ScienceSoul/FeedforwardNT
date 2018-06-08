@@ -90,15 +90,15 @@ int main(int argc, const char * argv[]) {
     memset(dataSetName, 0, sizeof(dataSetName));
     memset(trainFile, 0, sizeof(trainFile));
     
-    // Load the neural network and its parameters...
+    // Instantiate a neural network and load its parameters...
     fprintf(stdout, "%s: load the network and its input parameters:\n", PROGRAM_NAME);
-    NeuralNetwork *neural = loadNeuralNetwork();
+    NeuralNetwork *neural = newNeuralNetwork();
     if (neural->load((void *)neural, argv[1], dataSetName, trainFile) != 0) {
         fatal(PROGRAM_NAME, "failure reading input parameters.");
     }
     fprintf(stdout, "%s: done.\n", PROGRAM_NAME);
     
-    // Create the structure of the neural network and load the data to train/test it
+    // Create the data structures of the neural network
     fprintf(stdout, "%s: create the network internal structure:\n", PROGRAM_NAME);
     neural->genesis((void *)neural);
     
@@ -119,7 +119,7 @@ int main(int argc, const char * argv[]) {
         neural->data->test->reader = loadMnistTest;
     }
     
-    // Load all data
+    // Load all training/test data
     neural->data->load((void *)neural, dataSetName, trainFile, testFile, availableTestData);
     fprintf(stdout, "%s: done.\n", PROGRAM_NAME);
     

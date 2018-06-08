@@ -165,4 +165,4 @@ typedef struct NeuralNetwork {
     float (* _Nullable totalCost)(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, bool convert);
 } NeuralNetwork;
 
-NeuralNetwork * _Nonnull loadNeuralNetwork(void);
+NeuralNetwork * _Nonnull newNeuralNetwork(void);

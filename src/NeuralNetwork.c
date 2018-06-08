@@ -675,7 +675,7 @@ static dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOf
 //
 // Allocate memory for a neural network
 //
-NeuralNetwork * _Nonnull loadNeuralNetwork(void) {
+NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     
     NeuralNetwork *nn = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
     *nn = (NeuralNetwork){.weightsList=NULL, .biasesList=NULL, .activationsList=NULL, .zsList=NULL,
