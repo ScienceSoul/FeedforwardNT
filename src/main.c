@@ -9,6 +9,8 @@
 #include "LoadIrisDataSet.h"
 #include "LoadMNISTDataSet.h"
 
+#import "MetalCompute.h"
+
 int main(int argc, const char * argv[]) {
     
     char dataSetName[256];

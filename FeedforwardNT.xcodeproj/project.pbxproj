@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		01B73FA020C0E5060096F830 /* LoadMNISTDataSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */; };
+		01F6EC0E20CA696A00CC5606 /* MetalCompute.m in Sources */ = {isa = PBXBuildFile; fileRef = 01F6EC0D20CA696A00CC5606 /* MetalCompute.m */; };
+		01F6EC1120CDF23600CC5606 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01F6EC1020CDF23600CC5606 /* Metal.framework */; };
 		733208641F14D66700B4611F /* LoadIrisDataSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 7332085D1F14D66700B4611F /* LoadIrisDataSet.c */; };
 		733208651F14D66700B4611F /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 7332085E1F14D66700B4611F /* main.c */; };
 		733208661F14D66700B4611F /* Memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 7332085F1F14D66700B4611F /* Memory.c */; };
@@ -34,6 +36,10 @@
 /* Begin PBXFileReference section */
 		01B73F9E20C0E2FA0096F830 /* LoadMNISTDataSet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadMNISTDataSet.h; path = include/LoadMNISTDataSet.h; sourceTree = "<group>"; };
 		01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = LoadMNISTDataSet.c; path = src/LoadMNISTDataSet.c; sourceTree = "<group>"; };
+		01F6EC0D20CA696A00CC5606 /* MetalCompute.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = MetalCompute.m; path = src/MetalCompute.m; sourceTree = "<group>"; };
+		01F6EC0F20CA69D800CC5606 /* MetalCompute.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MetalCompute.h; path = src/MetalCompute.h; sourceTree = "<group>"; };
+		01F6EC1020CDF23600CC5606 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		01F6EC1220CDF3F300CC5606 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		733208581F14CEA600B4611F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7332085D1F14D66700B4611F /* LoadIrisDataSet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = LoadIrisDataSet.c; path = src/LoadIrisDataSet.c; sourceTree = "<group>"; };
 		7332085E1F14D66700B4611F /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = src/main.c; sourceTree = "<group>"; };
@@ -59,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01F6EC1120CDF23600CC5606 /* Metal.framework in Frameworks */,
 				7371AD0E1EEBCFDB00E291B6 /* OpenCL.framework in Frameworks */,
 				7371ACCE1ED32CA900E291B6 /* Accelerate.framework in Frameworks */,
 			);
@@ -77,6 +84,7 @@
 				7332085F1F14D66700B4611F /* Memory.c */,
 				733208601F14D66700B4611F /* NeuralNetwork.c */,
 				733208611F14D66700B4611F /* OpenCLUtils.c */,
+				01F6EC0D20CA696A00CC5606 /* MetalCompute.m */,
 				733208621F14D66700B4611F /* TimeProfile.c */,
 				733208631F14D66700B4611F /* Utils.c */,
 			);
@@ -91,6 +99,7 @@
 				7332086E1F14D68700B4611F /* Memory.h */,
 				7332086F1F14D68700B4611F /* NeuralNetwork.h */,
 				733208701F14D68700B4611F /* OpenCLUtils.h */,
+				01F6EC0F20CA69D800CC5606 /* MetalCompute.h */,
 				733208711F14D68700B4611F /* TimeProfile.h */,
 				733208721F14D68700B4611F /* Utils.h */,
 			);
@@ -100,6 +109,8 @@
 		7371ACCC1ED32CA900E291B6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				01F6EC1220CDF3F300CC5606 /* MetalKit.framework */,
+				01F6EC1020CDF23600CC5606 /* Metal.framework */,
 				7371AD0D1EEBCFDB00E291B6 /* OpenCL.framework */,
 				7371ACCD1ED32CA900E291B6 /* Accelerate.framework */,
 			);
@@ -187,6 +198,7 @@
 				733208671F14D66700B4611F /* NeuralNetwork.c in Sources */,
 				733208691F14D66700B4611F /* TimeProfile.c in Sources */,
 				7332086A1F14D66700B4611F /* Utils.c in Sources */,
+				01F6EC0E20CA696A00CC5606 /* MetalCompute.m in Sources */,
 				01B73FA020C0E5060096F830 /* LoadMNISTDataSet.c in Sources */,
 				733208641F14D66700B4611F /* LoadIrisDataSet.c in Sources */,
 				733208681F14D66700B4611F /* OpenCLUtils.c in Sources */,
