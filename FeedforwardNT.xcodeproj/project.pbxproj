@@ -34,6 +34,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		013B952820CE174B00E033FF /* MetalKernels.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; name = MetalKernels.metal; path = metal/MetalKernels.metal; sourceTree = SOURCE_ROOT; };
 		01B73F9E20C0E2FA0096F830 /* LoadMNISTDataSet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadMNISTDataSet.h; path = include/LoadMNISTDataSet.h; sourceTree = "<group>"; };
 		01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = LoadMNISTDataSet.c; path = src/LoadMNISTDataSet.c; sourceTree = "<group>"; };
 		01F6EC0D20CA696A00CC5606 /* MetalCompute.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = MetalCompute.m; path = src/MetalCompute.m; sourceTree = "<group>"; };
@@ -74,6 +75,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		01F6EC1420CE166200CC5606 /* metal */ = {
+			isa = PBXGroup;
+			children = (
+				013B952820CE174B00E033FF /* MetalKernels.metal */,
+			);
+			name = metal;
+			path = "New Group";
+			sourceTree = "<group>";
+		};
 		7332085B1F14D62C00B4611F /* src */ = {
 			isa = PBXGroup;
 			children = (
@@ -121,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				733208581F14CEA600B4611F /* README.md */,
+				01F6EC1420CE166200CC5606 /* metal */,
 				7332085C1F14D63600B4611F /* include */,
 				7332085B1F14D62C00B4611F /* src */,
 				73B409031ED14BC9000197ED /* Products */,
