@@ -292,3 +292,21 @@ void  __attribute__((overloadable)) nanToNum(float * _Nonnull array, size_t n) {
         }
     }
 }
+
+// Find the nearest power of 2 for a number
+//  - Parameter n: the number to find the nearest power 2 of.
+//  - Returns: The nearest power 2 of num (30 -> 32, 200 -> 256).
+//
+inline int  nearestPower2(int num) {
+    
+    int n = (num > 0) ? num - 1 : 0;
+    
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n += 1;
+    
+    return n;
+}

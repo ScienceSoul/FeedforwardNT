@@ -9,7 +9,7 @@
 #include "LoadIrisDataSet.h"
 #include "LoadMNISTDataSet.h"
 
-#import "MetalCompute.h"
+bool metal = false;
 
 int main(int argc, const char * argv[]) {
     
@@ -20,10 +20,8 @@ int main(int argc, const char * argv[]) {
     if (argc < 2) {
         fatal(PROGRAM_NAME, "missing argument for the input parameters file.");
     }
-    
     fprintf(stdout, "%s: start....\n", PROGRAM_NAME);
     
-    bool metal = false;
     bool availableTestData = false;
     bool err = false;
     
@@ -84,10 +82,6 @@ int main(int argc, const char * argv[]) {
     }
     
     if (err) fatal(PROGRAM_NAME, "problem in argument list. Possibly unrecognized argument.");
-
-    if (metal) {
-        fatal(PROGRAM_NAME, "Metal acceleration is not imnplemented yet.");
-    }
     
     memset(dataSetName, 0, sizeof(dataSetName));
     memset(trainFile, 0, sizeof(trainFile));
@@ -130,6 +124,13 @@ int main(int argc, const char * argv[]) {
     bool showCost = true;
 #else
     bool showCost = false;
+#endif
+    
+#ifdef __APPLE__
+    if (metal) {
+        neural->gpu_alloc((void *)neural);
+        neural->gpu->init();
+    }
 #endif
     neural->compute((void *)neural, &showCost);
     neural->finale((void *)neural);

@@ -153,23 +153,3 @@ int device_stats(cl_device_id _Nonnull device_id) {
     
     return CL_SUCCESS;
 }
-
-int LoadFileIntoString(const char * _Nonnull filename, char * _Nonnull * _Nullable text, size_t * _Nonnull len) {
-    struct stat statbuf;
-    FILE        *fh;
-    int         file_len;
-    
-    fh = fopen(filename, "r");
-    if (fh == 0)
-        return -1;
-    
-    stat(filename, &statbuf);
-    file_len = (int)statbuf.st_size;
-    *len = file_len;
-    *text = (char *) malloc(file_len + 1);
-    fread(*text, file_len, 1, fh);
-    (*text)[file_len] = '\0';
-    
-    fclose(fh);
-    return 0;
-}

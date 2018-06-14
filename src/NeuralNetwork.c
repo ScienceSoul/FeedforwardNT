@@ -43,6 +43,7 @@ static dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOf
 
 static void genesis(void * _Nonnull self);
 static void finale(void * _Nonnull self);
+static void gpu_alloc(void * _Nonnull self);
 
 static void computeNeural(void * _Nonnull self, bool * _Nullable showTotalCost);
 
@@ -59,6 +60,7 @@ static int evaluate(void * _Nonnull self);
 static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, bool convert);
 
 static void feedforward(void * _Nonnull self);
+static void gpuFeedforward(void * _Nonnull self);
 
 static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile) {
     
@@ -491,7 +493,7 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     
     NeuralNetwork *nn = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
     *nn = (NeuralNetwork){.weightsList=NULL, .biasesList=NULL, .activationsList=NULL, .zsList=NULL,
-                          .dcdwsList=NULL, .dcdbsList=NULL, .delta_dcdwsList=NULL, .delta_dcdbsList=NULL};
+                          .dcdwsList=NULL, .dcdbsList=NULL, .delta_dcdwsList=NULL, .delta_dcdbsList=NULL, .gpu=NULL};
     
     nn->parameters = (parameters *)malloc(sizeof(parameters));
     nn->parameters->epochs = 0;
@@ -506,6 +508,7 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     
     nn->genesis = genesis;
     nn->finale = finale;
+    nn->gpu_alloc = gpu_alloc;
     nn->compute = computeNeural;
     nn->miniBatch = miniBatch;
     nn->updateWeightsBiases = updateWeightsBiases;
@@ -514,6 +517,7 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     nn->evaluate = evaluate;
     nn->totalCost = totalCost;
     nn->feedforward = feedforward;
+    nn->gpuFeedforward = gpuFeedforward;
     
     return nn;
 }
@@ -683,6 +687,18 @@ static void finale(void * _Nonnull self) {
         free(zTail);
         zTail = zNodePt;
     }
+    
+    if (nn->gpu != NULL) {
+        nn->gpu->nullify();
+        free(nn->gpu);
+    };
+}
+
+static void gpu_alloc(void * _Nonnull self) {
+    
+    NeuralNetwork *nn = (NeuralNetwork *)self;
+    
+    nn->gpu = metalCompute();
 }
 
 static void computeNeural(void * _Nonnull self, bool * _Nullable showTotalCost) {
@@ -953,10 +969,19 @@ static void * _Nullable backpropagation(void * _Nonnull self) {
 
 static int evaluate(void * _Nonnull self) {
     
+    extern bool metal;
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
     float results = 0.0f;
     activationNode *aNodePt = NULL;
+    double averageComputeTime = 0.0;
+    
+#ifdef __APPLE__
+    if (metal) {
+        nn->gpu->allocate_buffers(nn->max_number_of_nodes_in_layer);
+        nn->gpu->prepare("feedforward");
+    }
+#endif
     
     int sum = 0;
     for (int k=0; k<nn->data->test->m; k++) {
@@ -967,11 +992,18 @@ static int evaluate(void * _Nonnull self) {
         }
         
         double rt = realtime();
+#ifdef __APPLE__
+        if (metal) {
+            nn->gpuFeedforward(self);
+        } else {
+            nn->feedforward(self);
+        }
+#else
         nn->feedforward(self);
-        rt = realtime() -  rt;
-#ifdef VERBOSE
-        fprintf(stdout, "%s: time to infer in evaluation (s): %f\n", PROGRAM_NAME, rt);
 #endif
+        rt = realtime() -  rt;
+        averageComputeTime = averageComputeTime + rt;
+        
         aNodePt = nn->activationsList;
         while (aNodePt != NULL && aNodePt->next != NULL) {
             aNodePt = aNodePt->next;
@@ -980,6 +1012,7 @@ static int evaluate(void * _Nonnull self) {
         results = (float)argmax(aNodePt->a, aNodePt->n);
         sum = sum + (results == nn->data->test->set[k][nn->number_of_features]);
     }
+    fprintf(stdout, "%s: total infer time in evaluation (s): %f\n", PROGRAM_NAME, averageComputeTime);
     
     return sum;
 }
@@ -1067,6 +1100,30 @@ static void feedforward(void * _Nonnull self) {
         for (int i=0; i<aNodePt->n; i++) {
             aNodePt->a[i] = sigmoid(zNodePt->z[i]);
         }
+        nanToNum(aNodePt->a, aNodePt->n);
+        wNodePt = wNodePt->next;
+        bNodePt = bNodePt->next;
+    }
+}
+
+static void gpuFeedforward(void * _Nonnull self) {
+    
+    NeuralNetwork *nn = (NeuralNetwork *)self;
+    
+    weightNode *wNodePt = nn->weightsList;
+    biasNode *bNodePt = nn->biasesList;
+    activationNode *aNodePt = nn->activationsList;
+    zNode *zNodePt = nn->zsList;
+    
+    while (wNodePt != NULL && bNodePt != NULL) {
+        aNodePt = aNodePt->next;
+        zNodePt = zNodePt->next;
+        float buffer[aNodePt->n];
+        memset(buffer, 0.0f, sizeof(buffer));
+        
+        cblas_sgemv(CblasRowMajor, CblasNoTrans, (int)wNodePt->m, (int)wNodePt->n, 1.0, *wNodePt->w, (int)wNodePt->n, aNodePt->previous->a, 1, 0.0, buffer, 1);
+        nn->gpu->activation(buffer, bNodePt->b, aNodePt->a, aNodePt->n);
+        
         nanToNum(aNodePt->a, aNodePt->n);
         wNodePt = wNodePt->next;
         bNodePt = bNodePt->next;

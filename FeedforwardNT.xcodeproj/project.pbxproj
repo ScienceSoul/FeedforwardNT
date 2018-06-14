@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		013B952920CF658E00E033FF /* MetalKernels.metal in Sources */ = {isa = PBXBuildFile; fileRef = 013B952820CE174B00E033FF /* MetalKernels.metal */; };
 		01B73FA020C0E5060096F830 /* LoadMNISTDataSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */; };
 		01F6EC0E20CA696A00CC5606 /* MetalCompute.m in Sources */ = {isa = PBXBuildFile; fileRef = 01F6EC0D20CA696A00CC5606 /* MetalCompute.m */; };
 		01F6EC1120CDF23600CC5606 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01F6EC1020CDF23600CC5606 /* Metal.framework */; };
@@ -38,7 +39,7 @@
 		01B73F9E20C0E2FA0096F830 /* LoadMNISTDataSet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadMNISTDataSet.h; path = include/LoadMNISTDataSet.h; sourceTree = "<group>"; };
 		01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = LoadMNISTDataSet.c; path = src/LoadMNISTDataSet.c; sourceTree = "<group>"; };
 		01F6EC0D20CA696A00CC5606 /* MetalCompute.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = MetalCompute.m; path = src/MetalCompute.m; sourceTree = "<group>"; };
-		01F6EC0F20CA69D800CC5606 /* MetalCompute.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MetalCompute.h; path = src/MetalCompute.h; sourceTree = "<group>"; };
+		01F6EC0F20CA69D800CC5606 /* MetalCompute.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MetalCompute.h; path = include/MetalCompute.h; sourceTree = "<group>"; };
 		01F6EC1020CDF23600CC5606 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		01F6EC1220CDF3F300CC5606 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		733208581F14CEA600B4611F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -207,6 +208,7 @@
 			files = (
 				733208651F14D66700B4611F /* main.c in Sources */,
 				733208671F14D66700B4611F /* NeuralNetwork.c in Sources */,
+				013B952920CF658E00E033FF /* MetalKernels.metal in Sources */,
 				733208691F14D66700B4611F /* TimeProfile.c in Sources */,
 				7332086A1F14D66700B4611F /* Utils.c in Sources */,
 				01F6EC0E20CA696A00CC5606 /* MetalCompute.m in Sources */,

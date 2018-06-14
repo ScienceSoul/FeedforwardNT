@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "Utils.h"
 #include "TimeProfile.h"
+#include "MetalCompute.h"
 
 #endif /* NeuralNetwork_h */
 
@@ -106,16 +107,20 @@ typedef struct NeuralNetwork {
     dcdbNode * _Nullable dcdbsList;
     dcdwNode * _Nullable delta_dcdwsList;
     dcdbNode * _Nullable delta_dcdbsList;
+    
+    MetalCompute * _Nullable gpu;
         
     void (* _Nullable genesis)(void * _Nonnull self);
     void (* _Nullable finale)(void * _Nonnull self);
+    void (* _Nullable gpu_alloc)(void * _Nonnull self);
     
     void (* _Nullable compute)(void * _Nonnull self, bool * _Nullable showTotalCost);
     void (* _Nullable miniBatch)(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatch);
-    void(* _Nullable updateWeightsBiases)(void * _Nonnull self);
+    void (* _Nullable updateWeightsBiases)(void * _Nonnull self);
     void (* _Nullable batchAccumulation)(void * _Nonnull self);
     void * _Nullable (* _Nullable backpropagation)(void * _Nonnull self);
     void (* _Nonnull feedforward)(void * _Nonnull self);
+    void (* _Nonnull gpuFeedforward)(void * _Nonnull self);
     int (* _Nullable evaluate)(void * _Nonnull self);
     float (* _Nullable totalCost)(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, bool convert);
 } NeuralNetwork;

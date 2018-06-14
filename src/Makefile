@@ -13,11 +13,11 @@ CFLAGS = -Wall -O3
 INCLUDES = -I../include
 
 # BLAS/LAPACK (required) and OpenCL (optional) on macOS or use any other implementation
-LFLAGS = -framework Accelerate -framework OpenCL
+LFLAGS = -framework Accelerate -framework OpenCL -framework Metal -framework Foundation
 
 LIBS = -lm
 
-SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c LoadMNISTDataSet.c Memory.c Utils.c TimeProfile.c OpenCLUtils.c
+SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c LoadMNISTDataSet.c Memory.c Utils.c TimeProfile.c OpenCLUtils.c MetalCompute.m
 
 # define the C object files
 #
