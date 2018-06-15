@@ -3,7 +3,7 @@ iris
 /Users/hakimeseddik/Documents/FeedforwardNT/iris/iris.dat
 !
 !Netdwork!definitions
-{4,30,30,3}
+{4,30,3}
 !
 !Training!data!test!data
 {120,30}
@@ -21,7 +21,7 @@ iris
 10
 !
 !Eta
-0.25
+0.3
 !
 !Lambda
 1.0

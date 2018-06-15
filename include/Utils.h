@@ -47,7 +47,8 @@ float sigmoidPrime(float z);
 
 float crossEntropyCost(float * _Nonnull a, float * _Nonnull y, size_t n);
 
-float frobeniusNorm(float * _Nonnull * _Nonnull mat, size_t m, size_t n);
+float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull * _Nonnull mat, size_t m, size_t n);
+float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull mat, size_t n);
 
 void  __attribute__((overloadable)) nanToNum(float * _Nonnull array, size_t n);
 

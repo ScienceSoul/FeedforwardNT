@@ -15,19 +15,13 @@
 
 #endif /* NeuralNetwork_h */
 
-typedef struct weightNode {
+typedef struct weightMatrixDimension {
     size_t m, n;
-    float * _Nullable * _Nullable w;
-    struct weightNode * _Nullable next;
-    struct weightNode * _Nullable previous;
-} weightNode;
+} weightMatrixDimension;
 
-typedef struct biasNode {
+typedef struct biasVectorDimension {
     size_t n;
-    float * _Nullable b;
-    struct biasNode * _Nullable next;
-    struct biasNode * _Nullable previous;
-} biasNode;
+} biasVectorDimension;
 
 typedef struct activationNode {
     size_t n;
@@ -99,8 +93,11 @@ typedef struct NeuralNetwork {
     size_t number_of_layers;
     size_t max_number_of_nodes_in_layer;
     
-    weightNode * _Nullable weightsList;
-    biasNode * _Nullable biasesList;
+    float * _Nullable weights;
+    float * _Nullable biases;
+    weightMatrixDimension weightsDimensions[100];
+    biasVectorDimension biasesDimensions[100];
+    
     activationNode * _Nullable activationsList;
     zNode * _Nullable zsList;
     dcdwNode * _Nullable dcdwsList;

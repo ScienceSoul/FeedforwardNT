@@ -23,17 +23,14 @@ static float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull
 
 static float * _Nonnull * _Nonnull getData(float * _Nonnull * _Nonnull dataSet, size_t len1, size_t len2, size_t start, size_t end, size_t * _Nonnull t1, size_t * _Nonnull t2);
 
-static weightNode * _Nonnull allocateWeightNode(void);
-static biasNode * _Nonnull allocateBiasNode(void);
-
 static activationNode * _Nonnull allocateActivationNode(void);
 static zNode * _Nonnull allocateZNode(void);
 
 static dcdwNode * _Nonnull allocateDcdwNode(void);
 static dcdbNode * _Nonnull allocateDcdbNode(void);
 
-static weightNode * _Nonnull initWeightsList(int * _Nonnull ntLayers, size_t numberOfLayers);
-static biasNode * _Nonnull initBiasesList(int * _Nonnull ntLayers, size_t numberOfLayers);
+static float * _Nonnull initWeights(int * _Nonnull ntLayers, size_t numberOfLayers);
+static float * _Nonnull initBiases(int * _Nonnull ntLayers, size_t numberOfLayers);
 
 static activationNode * _Nonnull initActivationsList(int * _Nonnull ntLayers, size_t numberOfLayers);
 static zNode * _Nonnull initZsList(int * _Nonnull ntLayers, size_t numberOfLayers);
@@ -230,19 +227,6 @@ static float * _Nonnull * _Nonnull getData(float * _Nonnull * _Nonnull dataSet, 
     return data;
 }
 
-static weightNode * _Nonnull allocateWeightNode(void) {
-    
-    weightNode *list = (weightNode *)malloc(sizeof(weightNode));
-    *list = (weightNode){.m=0, .n=0, .w=NULL, .next=NULL, .previous=NULL};
-    return list;
-}
-
-static biasNode * _Nonnull allocateBiasNode(void) {
-    biasNode *list = (biasNode *)malloc(sizeof(biasNode));
-    *list = (biasNode){.n=0, .b=NULL, .next=NULL, .previous=NULL};
-    return list;
-}
-
 static activationNode * _Nonnull allocateActivationNode(void) {
     activationNode *list = (activationNode *)malloc(sizeof(activationNode));
     *list = (activationNode){.n=0, .a=NULL, .next=NULL, .previous=NULL};
@@ -268,88 +252,58 @@ static dcdbNode * _Nonnull allocateDcdbNode(void) {
 }
 
 //
-//  Create the weights list according to the number of layers in the network.
+//  Create the weights vector according to the number of layers in the network.
 //  The weights are initialized using a Gaussian distribution with mean 0
 //  and standard deviation 1 over the square root of the number of
 //  weights connecting to the same neuron.
 //
-//  Return a pointer to the list head.
-//
-static weightNode * _Nonnull initWeightsList(int * _Nonnull ntLayers, size_t numberOfLayers) {
+static float * _Nonnull initWeights(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
-    weightNode *weightsList = allocateWeightNode();
-    
-    // The first weight node (i.e., layer)
-    weightsList->w = floatmatrix(0, ntLayers[1]-1, 0, ntLayers[0]-1);
-    weightsList->m = ntLayers[1];
-    weightsList->n = ntLayers[0];
-    // The rest of the weight nodes (i.e., layers)
-    int idx = 1;
-    int k = 1;
-    weightNode *wNodePt = weightsList;
-    while (k < numberOfLayers-1) {
-        weightNode *newNode = allocateWeightNode();
-        newNode->w = floatmatrix(0, ntLayers[idx+1]-1, 0, ntLayers[idx]-1);
-        newNode->m = ntLayers[idx+1];
-        newNode->n = ntLayers[idx];
-        newNode->previous = wNodePt;
-        wNodePt->next = newNode;
-        wNodePt = newNode;
-        k++;
-        idx++;
+    int dim = 0;
+    for (int l=0; l<numberOfLayers-1; l++) {
+        dim = dim + (ntLayers[l+1]*ntLayers[l]);
     }
+    float *weights = (float *)malloc(dim*sizeof(float));
     
-    wNodePt = weightsList;
-    while (wNodePt != NULL) {
-        for (int i = 0; i<wNodePt->m; i++) {
-            for (int j=0; j<wNodePt->n; j++) {
-                wNodePt->w[i][j] = randn(0.0f, 1.0f) / sqrtf((float)wNodePt->n);
-            }
-        }
-        wNodePt = wNodePt->next;
-    }
+    int stride = 0;
+    for (int l=0; l<numberOfLayers-1; l++) {
+         int m = ntLayers[l+1];
+         int n = ntLayers[l];
+         for (int i = 0; i<m; i++) {
+             for (int j=0; j<n; j++) {
+                 weights[stride+((i*n)+j)] = randn(0.0f, 1.0f) / sqrtf((float)n);
+             }
+         }
+         stride = stride + (m * n);
+     }
     
-    return weightsList;
+    return weights;
 }
 
 //
-//  Create the biases list according to the number of layers in the network.
+//  Create the biases vector according to the number of layers in the network.
 //  The biases are initialized using a Gaussian distribution with mean 0
 //  and standard deviation 1.
 //
-//  Return a pointer to the list head.
-//
-static biasNode * _Nonnull initBiasesList(int * _Nonnull ntLayers, size_t numberOfLayers) {
+static float * _Nonnull initBiases(int * _Nonnull ntLayers, size_t numberOfLayers) {
     
-    biasNode *biasesList = allocateBiasNode();
-    
-    // The first bias node (i.e., layer)
-    biasesList->b = floatvec(0, ntLayers[1]-1);
-    biasesList->n = ntLayers[1];
-    // The rest of the bias nodes (i.e., layers)
-    int idx = 2;
-    int k = 1;
-    biasNode *bNodePt = biasesList;
-    while (k < numberOfLayers-1) {
-        biasNode *newNode = allocateBiasNode();
-        newNode->b = floatvec(0, ntLayers[idx]-1);
-        newNode->n = ntLayers[idx];
-        newNode->previous = bNodePt;
-        bNodePt->next = newNode;
-        bNodePt = newNode;
-        k++;
-        idx++;
+    int dim = 0;
+    for (int l=1; l<numberOfLayers; l++) {
+        dim  = dim + ntLayers[l];
     }
     
-    bNodePt = biasesList;
-    while (bNodePt != NULL) {
-        for (int i = 0; i<bNodePt->n; i++) {
-            bNodePt->b[i] = randn(0.0f, 1.0f);
+    float *biases = (float*)malloc(dim*sizeof(float));
+    
+    int stride = 0;
+    for (int l=1; l<numberOfLayers; l++) {
+        int n = ntLayers[l];
+        for (int i = 0; i<n; i++) {
+            biases[stride+i] = randn(0.0f, 1.0f);
         }
-        bNodePt = bNodePt->next;
+        stride = stride + n;
     }
     
-    return biasesList;
+    return biases;
 }
 
 //
@@ -492,7 +446,7 @@ static dcdbNode * _Nonnull initDcdbList(int * _Nonnull ntLayers, size_t numberOf
 NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     
     NeuralNetwork *nn = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
-    *nn = (NeuralNetwork){.weightsList=NULL, .biasesList=NULL, .activationsList=NULL, .zsList=NULL,
+    *nn = (NeuralNetwork){.weights=NULL, .biases=NULL, .activationsList=NULL, .zsList=NULL,
                           .dcdwsList=NULL, .dcdbsList=NULL, .delta_dcdwsList=NULL, .delta_dcdbsList=NULL, .gpu=NULL};
     
     nn->parameters = (parameters *)malloc(sizeof(parameters));
@@ -538,8 +492,16 @@ static void genesis(void * _Nonnull self) {
     nn->data->init = initNeuralData;
     nn->data->load = loadData;
     
-    nn->weightsList = initWeightsList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
-    nn->biasesList = initBiasesList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    for (int l=0; l<nn->parameters->numberOfLayers-1; l++) {
+        nn->weightsDimensions[l].m = nn->parameters->ntLayers[l+1];
+        nn->weightsDimensions[l].n = nn->parameters->ntLayers[l];
+    }
+    for (int l=1; l<nn->parameters->numberOfLayers; l++) {
+        nn->biasesDimensions[l-1].n = nn->parameters->ntLayers[l];
+    }
+    
+    nn->weights = initWeights(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->biases = initBiases(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
     nn->activationsList = initActivationsList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
     nn->zsList = initZsList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
     nn->dcdwsList = initDcdwList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
@@ -568,35 +530,8 @@ static void finale(void * _Nonnull self) {
     free(nn->data);
     free(nn->parameters);
     
-    weightNode *wTail = nn->weightsList;
-    while (wTail != NULL && wTail->next != NULL) {
-        wTail = wTail->next;
-    }
-    weightNode *wNodePt = NULL;
-    while (wTail != NULL) {
-        wNodePt = wTail->previous;
-        free_fmatrix(wTail->w, 0, wTail->m-1, 0, wTail->n-1);
-        wTail->w = NULL;
-        wTail->next = NULL;
-        wTail->previous = NULL;
-        free(wTail);
-        wTail = wNodePt;
-    }
-    
-    biasNode *bTail = nn->biasesList;
-    while (bTail != NULL && bTail->next != NULL) {
-        bTail = bTail->next;
-    }
-    biasNode *bNodePt = NULL;
-    while (bTail != NULL) {
-        bNodePt = bTail->previous;
-        free_fvector(bTail->b, 0, bTail->n);
-        bTail->b = NULL;
-        bTail->next = NULL;
-        bTail->previous = NULL;
-        free(bTail);
-        bTail = bNodePt;
-    }
+    free(nn->weights);
+    free(nn->biases);
     
     dcdwNode *dcdwTail = nn->dcdwsList;
     while (dcdwTail != NULL && dcdwTail->next ) {
@@ -839,27 +774,34 @@ static void updateWeightsBiases(void * _Nonnull self) {
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
     // Update weights
-    weightNode *wNodePt = nn->weightsList;
+    size_t stride = 0;
+    size_t l = 0;
     dcdwNode *dcdwNodePt = nn->dcdwsList;
-    while (wNodePt != NULL) {
-        for (int i=0; i<wNodePt->m; i++) {
-            for (int j=0; j<wNodePt->n; j++) {
-                wNodePt->w[i][j] = (1.0f-((nn->parameters->eta*nn->parameters->lambda)/(float)nn->data->training->m))*wNodePt->w[i][j] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdwNodePt->dcdw[i][j];
+    while (dcdwNodePt != NULL) {
+        size_t m = nn->weightsDimensions[l].m;
+        size_t n = nn->weightsDimensions[l].n;
+        for (int i=0; i<m; i++) {
+            for (int j=0; j<n; j++) {
+                nn->weights[stride+((i*n)+j)] = (1.0f-((nn->parameters->eta*nn->parameters->lambda)/(float)nn->data->training->m))*nn->weights[stride+((i*n)+j)] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdwNodePt->dcdw[i][j];
             }
         }
-        wNodePt = wNodePt->next;
         dcdwNodePt = dcdwNodePt->next;
+        l++;
+        stride = stride + (m * n);
     }
     
     // Update biases
-    biasNode *bNodePt = nn->biasesList;
+    stride = 0;
+    l = 0;
     dcdbNode *dcdbNodePt = nn->dcdbsList;
-    while (bNodePt != NULL) {
-        for (int i=0; i<bNodePt->n; i++) {
-            bNodePt->b[i] = bNodePt->b[i] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdbNodePt->dcdb[i];
+    while (dcdbNodePt != NULL) {
+        size_t n = nn->biasesDimensions[l].n;
+        for (int i=0; i<n; i++) {
+            nn->biases[stride+i] = nn->biases[stride+i] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdbNodePt->dcdb[i];
         }
-        bNodePt = bNodePt->next;
         dcdbNodePt = dcdbNodePt->next;
+        l++;
+        stride = stride + n;
     }
 }
 
@@ -924,17 +866,20 @@ static void * _Nullable backpropagation(void * _Nonnull self) {
     
     // The backward pass loop
     
-    // Weights at last layer
-    weightNode *wTail = nn->weightsList;
-    while (wTail != NULL && wTail->next != NULL) {
-        wTail = wTail->next;
+    // Stride to weithts at last layer
+    size_t stride = 0;
+    size_t m, n;
+    for (int l=0; l<nn->parameters->numberOfLayers-2; l++) {
+        m = nn->weightsDimensions[l].m;
+        n = nn->weightsDimensions[l].n;
+        stride = stride + (m * n);
     }
     
-    weightNode *wNodePt = wTail;
     zNode *zNodePt = zTail->previous;
     dcdwNode *dcdwNodePt = dcdwTail->previous;
     dcdbNode *dcdbNodePt = dcdbTail->previous;
     
+    size_t l = nn->parameters->numberOfLayers-2;
     while (dcdwNodePt != NULL && dcdbNodePt != NULL) {
         aNodePt = aNodePt->previous;
         
@@ -943,7 +888,7 @@ static void * _Nullable backpropagation(void * _Nonnull self) {
             sp[i] = sigmoidPrime(zNodePt->z[i]);
         }
         
-        cblas_sgemv(CblasRowMajor, CblasTrans, (int)wNodePt->m, (int)wNodePt->n, 1.0, *wNodePt->w, (int)wNodePt->n, delta, 1, 0.0, buffer, 1);
+        cblas_sgemv(CblasRowMajor, CblasTrans, (int)nn->weightsDimensions[l].m, (int)nn->weightsDimensions[l].n, 1.0, nn->weights+stride, (int)nn->weightsDimensions[l].n, delta, 1, 0.0, buffer, 1);
         for (int i=0; i<zNodePt->n; i++) {
             delta[i] = buffer[i] * sp[i];
         }
@@ -958,10 +903,11 @@ static void * _Nullable backpropagation(void * _Nonnull self) {
             dcdbNodePt->dcdb[i] = delta[i];
         }
         
-        wNodePt = wNodePt->previous;
         zNodePt = zNodePt->previous;
         dcdwNodePt = dcdwNodePt->previous;
         dcdbNodePt = dcdbNodePt->previous;
+        l--;
+        stride = stride - (nn->weightsDimensions[l-1].m * nn->weightsDimensions[l-1].n);
     }
     
     return NULL;
@@ -1059,11 +1005,13 @@ static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, s
         cost = cost + crossEntropyCost(aNodePt->a, y, aNodePt->n) / m;
         
         sum = 0.0f;
-        weightNode *wNodePt = nn->weightsList;
-        while (wNodePt != NULL) {
-            norm = frobeniusNorm(wNodePt->w, wNodePt->m, wNodePt->n);
+        size_t stride = 0;
+        for (int l=0; l<nn->parameters->numberOfLayers-1; l++) {
+            size_t m = nn->weightsDimensions[l].m;
+            size_t n = nn->weightsDimensions[l].n;
+            norm = frobeniusNorm(nn->weights+stride, (m * n));
             sum = sum + (norm*norm);
-            wNodePt = wNodePt->next;
+            stride = stride + (m * n);
         }
         cost = cost + 0.5f*(nn->parameters->lambda/(float)m)*sum;
     }
@@ -1077,55 +1025,59 @@ static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, s
 static void feedforward(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
-    
-    weightNode *wNodePt = nn->weightsList;
-    biasNode *bNodePt = nn->biasesList;
+
     activationNode *aNodePt = nn->activationsList;
     zNode *zNodePt = nn->zsList;
     
-    while (wNodePt != NULL && bNodePt != NULL) {
+    size_t stride1 = 0;
+    size_t stride2 = 0;
+    for (int l=0; l<nn->parameters->numberOfLayers-1; l++) {
+        size_t m = nn->weightsDimensions[l].m;
+        size_t n = nn->weightsDimensions[l].n;
+        
         aNodePt = aNodePt->next;
         zNodePt = zNodePt->next;
         float buffer[aNodePt->n];
         memset(buffer, 0.0f, sizeof(buffer));
         
-        cblas_sgemv(CblasRowMajor, CblasNoTrans, (int)wNodePt->m, (int)wNodePt->n, 1.0, *wNodePt->w, (int)wNodePt->n, aNodePt->previous->a, 1, 0.0, buffer, 1);
-    #ifdef __APPLE__
-        vDSP_vadd(buffer, 1, bNodePt->b, 1, zNodePt->z, 1, bNodePt->n);
-    #else
-        for (int i=0; i<bNodePt->n; i++) {
-            zNodePt->z[i] = buffer[i] + bNodePt->b[i];
+        cblas_sgemv(CblasRowMajor, CblasNoTrans, (int)m, (int)n, 1.0, nn->weights+stride1, (int)n, aNodePt->previous->a, 1, 0.0, buffer, 1);
+#ifdef __APPLE__
+        vDSP_vadd(buffer, 1, nn->biases+stride2, 1, zNodePt->z, 1,nn->biasesDimensions[l].n);
+#else
+        for (int i=0; i<nn->biasesDimensions[l].n; i++) {
+            zNodePt->z[i] = buffer[i] + nn->biases[strid2+i];
         }
-    #endif
+#endif
         for (int i=0; i<aNodePt->n; i++) {
             aNodePt->a[i] = sigmoid(zNodePt->z[i]);
         }
         nanToNum(aNodePt->a, aNodePt->n);
-        wNodePt = wNodePt->next;
-        bNodePt = bNodePt->next;
+        
+        stride1 = stride1 + (m * n);
+        stride2 = stride2 + nn->biasesDimensions[l].n;
     }
 }
 
 static void gpuFeedforward(void * _Nonnull self) {
     
-    NeuralNetwork *nn = (NeuralNetwork *)self;
-    
-    weightNode *wNodePt = nn->weightsList;
-    biasNode *bNodePt = nn->biasesList;
-    activationNode *aNodePt = nn->activationsList;
-    zNode *zNodePt = nn->zsList;
-    
-    while (wNodePt != NULL && bNodePt != NULL) {
-        aNodePt = aNodePt->next;
-        zNodePt = zNodePt->next;
-        float buffer[aNodePt->n];
-        memset(buffer, 0.0f, sizeof(buffer));
-        
-        cblas_sgemv(CblasRowMajor, CblasNoTrans, (int)wNodePt->m, (int)wNodePt->n, 1.0, *wNodePt->w, (int)wNodePt->n, aNodePt->previous->a, 1, 0.0, buffer, 1);
-        nn->gpu->activation(buffer, bNodePt->b, aNodePt->a, aNodePt->n);
-        
-        nanToNum(aNodePt->a, aNodePt->n);
-        wNodePt = wNodePt->next;
-        bNodePt = bNodePt->next;
-    }
+//    NeuralNetwork *nn = (NeuralNetwork *)self;
+//
+//    weightNode *wNodePt = nn->weightsList;
+//    biasNode *bNodePt = nn->biasesList;
+//    activationNode *aNodePt = nn->activationsList;
+//    zNode *zNodePt = nn->zsList;
+//
+//    while (wNodePt != NULL && bNodePt != NULL) {
+//        aNodePt = aNodePt->next;
+//        zNodePt = zNodePt->next;
+//        float buffer[aNodePt->n];
+//        memset(buffer, 0.0f, sizeof(buffer));
+//
+//        cblas_sgemv(CblasRowMajor, CblasNoTrans, (int)wNodePt->m, (int)wNodePt->n, 1.0, *wNodePt->w, (int)wNodePt->n, aNodePt->previous->a, 1, 0.0, buffer, 1);
+//        nn->gpu->activation(buffer, bNodePt->b, aNodePt->a, aNodePt->n);
+//
+//        nanToNum(aNodePt->a, aNodePt->n);
+//        wNodePt = wNodePt->next;
+//        bNodePt = bNodePt->next;
+//    }
 }

@@ -246,7 +246,7 @@ float sigmoidPrime(float z) {
 //
 //  Compute the Frobenius norm of a m x n matrix
 //
-float frobeniusNorm(float * _Nonnull * _Nonnull mat, size_t m, size_t n) {
+float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull * _Nonnull mat, size_t m, size_t n) {
     
     float norm = 0.0f;
     for (int i=0; i<m; i++) {
@@ -256,6 +256,19 @@ float frobeniusNorm(float * _Nonnull * _Nonnull mat, size_t m, size_t n) {
     }
     
     return sqrtf(norm);
+}
+
+//
+//  Compute the Frobenius norm of a m x n serialized matrix
+//
+float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull mat, size_t n) {
+    
+    float norm = 0.0f;
+    for (int i=0; i<n; i++) {
+        norm = norm + powf(mat[i], 2.0f);
+    }
+    
+    return norm;
 }
 
 float crossEntropyCost(float * _Nonnull a, float * _Nonnull y, size_t n) {
