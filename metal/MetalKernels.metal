@@ -36,7 +36,7 @@ inline void matrixVectorMul(device float *a, device float *x, uint m, uint n, ui
     for(uint i=0; i<m; i++) {
         float sum = 0.0f;
         for(uint j=0; j<n; j++) {
-            sum = sum + a[idx] * x[gridID+(j*gridDimension)];
+            sum = fma(a[idx], x[gridID+(j*gridDimension)], sum);
             idx++;
         }
         buffer[i] = sum;
