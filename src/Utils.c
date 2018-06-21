@@ -76,7 +76,7 @@ void format(char * _Nullable head, char * _Nullable message, int *iValue, double
     exit(-1);
 }
 
-void shuffle(float * _Nonnull * _Nonnull array, size_t len1, size_t len2) {
+void shuffle(float * _Nonnull * _Nonnull array, unsigned int len1, unsigned int len2) {
     
     float t[len2];
     
@@ -98,7 +98,7 @@ void shuffle(float * _Nonnull * _Nonnull array, size_t len1, size_t len2) {
     }
 }
 
-void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int  * _Nonnull result, size_t * _Nonnull numberOfItems) {
+void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int  * _Nonnull result, unsigned int * _Nonnull numberOfItems) {
     int idx = 0;
     *numberOfItems = 0;
     
@@ -158,7 +158,7 @@ float randn(float mu, float sigma) {
     return (mu + sigma * (float) X1);
 }
 
-int __attribute__((overloadable)) min_array(int * _Nonnull a, size_t num_elements) {
+int __attribute__((overloadable)) min_array(int * _Nonnull a, unsigned int num_elements) {
     
     int min = INT_MAX;
     for (int i=0; i<num_elements; i++) {
@@ -170,7 +170,7 @@ int __attribute__((overloadable)) min_array(int * _Nonnull a, size_t num_element
     return min;
 }
 
-float __attribute__((overloadable)) min_array(float * _Nonnull a, size_t num_elements) {
+float __attribute__((overloadable)) min_array(float * _Nonnull a, unsigned int num_elements) {
     
     float min = INT_MAX;
     for (int i=0; i<num_elements; i++) {
@@ -182,7 +182,7 @@ float __attribute__((overloadable)) min_array(float * _Nonnull a, size_t num_ele
     return min;
 }
 
-int __attribute__((overloadable)) max_array(int * _Nonnull a, size_t num_elements)
+int __attribute__((overloadable)) max_array(int * _Nonnull a, unsigned int num_elements)
 {
     int max = -INT_MAX;
     for (int i=0; i<num_elements; i++) {
@@ -194,7 +194,7 @@ int __attribute__((overloadable)) max_array(int * _Nonnull a, size_t num_element
     return max;
 }
 
-float __attribute__((overloadable)) max_array(float * _Nonnull a, size_t num_elements) {
+float __attribute__((overloadable)) max_array(float * _Nonnull a, unsigned int num_elements) {
     
     float max = -INT_MAX;
     for (int i=0; i<num_elements; i++) {
@@ -206,7 +206,7 @@ float __attribute__((overloadable)) max_array(float * _Nonnull a, size_t num_ele
     return max;
 }
 
-int __attribute__((overloadable)) argmax(int * _Nonnull a, size_t num_elements) {
+int __attribute__((overloadable)) argmax(int * _Nonnull a, unsigned int num_elements) {
     
     int idx=0, max = -INT_MAX;
     for (int i=0; i<num_elements; i++) {
@@ -219,7 +219,7 @@ int __attribute__((overloadable)) argmax(int * _Nonnull a, size_t num_elements) 
     return idx;
 }
 
-int __attribute__((overloadable)) argmax(float * _Nonnull a, size_t num_elements) {
+int __attribute__((overloadable)) argmax(float * _Nonnull a, unsigned int num_elements) {
     
     int idx=0;
     float max = -HUGE_VAL;
@@ -246,7 +246,7 @@ float sigmoidPrime(float z) {
 //
 //  Compute the Frobenius norm of a m x n matrix
 //
-float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull * _Nonnull mat, size_t m, size_t n) {
+float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull * _Nonnull mat, unsigned int m, unsigned int n) {
     
     float norm = 0.0f;
     for (int i=0; i<m; i++) {
@@ -261,7 +261,7 @@ float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull * _Nonnull ma
 //
 //  Compute the Frobenius norm of a m x n serialized matrix
 //
-float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull mat, size_t n) {
+float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull mat, unsigned int n) {
     
     float norm = 0.0f;
     for (int i=0; i<n; i++) {
@@ -271,7 +271,7 @@ float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull mat, size_t n
     return norm;
 }
 
-float crossEntropyCost(float * _Nonnull a, float * _Nonnull y, size_t n) {
+float crossEntropyCost(float * _Nonnull a, float * _Nonnull y, unsigned int n) {
     
     float cost = 0.0f;
     float buffer[n];
@@ -291,7 +291,7 @@ float crossEntropyCost(float * _Nonnull a, float * _Nonnull y, size_t n) {
     return cost;
 }
 
-void  __attribute__((overloadable)) nanToNum(float * _Nonnull array, size_t n) {
+void  __attribute__((overloadable)) nanToNum(float * _Nonnull array, unsigned int n) {
     
     for (int i=0; i<n; i++) {
         if (isnan(array[i]) != 0) array[i] = 0.0f;

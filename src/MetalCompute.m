@@ -10,6 +10,7 @@
 #include <Metal/Metal.h>
 #include <sys/stat.h>
 
+#include "NeuralNetwork.h"
 #include "MetalCompute.h"
 #include "Utils.h"
 #include "TimeProfile.h"
@@ -21,18 +22,26 @@ id <MTLLibrary> _Nullable library;
 NSMutableArray *functions;
 NSMutableArray *pipelineStates;
 
-id <MTLBuffer> firstInputBuffer;
-id <MTLBuffer> secondInputBuffer;
-id <MTLBuffer> dimBuffer_uint16;
-id <MTLBuffer> dimBuffer_uint32;
-id <MTLBuffer> matrixBuffer;
-id <MTLBuffer> vectorBuffer;
-id <MTLBuffer> outputBuffer;
+id <MTLBuffer> kernel_data;
+id <MTLBuffer> kernel_weights;
+id <MTLBuffer> kernel_biases;
+id <MTLBuffer> kernel_activations;
+id <MTLBuffer> kernel_ground_truth;
+id <MTLBuffer> kernel_parameters;
 
-size_t buffer_size;
 bool allocation;
 
-int LoadFileIntoString(const char * _Nonnull filename, char * _Nonnull * _Nullable text, size_t * _Nonnull len) {
+typedef struct parameters_container {
+    unsigned int gridDimension;
+    unsigned int numberOfLayers;
+    unsigned int numberOfFeatures;
+    unsigned int numberOfOutputs;
+    
+    weightMatrixDimension weightsDim[100];
+    biasVectorDimension biasesDim[100];
+} parameters_container;
+
+int LoadFileIntoString(const char * _Nonnull filename, char * _Nonnull * _Nullable text, unsigned int * _Nonnull len) {
     struct stat statbuf;
     FILE        *fh;
     int         file_len;
@@ -57,7 +66,7 @@ void init (void) {
     commandQueue = device.newCommandQueue;
     
     char * metal_source;
-    size_t src_len;
+    unsigned int src_len;
     
     if (LoadFileIntoString("metal/MetalKernels.metal", &metal_source, &src_len) != 0) {
         if (LoadFileIntoString("../metal/MetalKernels.metal", &metal_source, &src_len) != 0) {
@@ -76,7 +85,6 @@ void init (void) {
     functions = [NSMutableArray new];
     pipelineStates = [NSMutableArray new];
     
-    buffer_size = 0;
     allocation = false;
 }
 
@@ -87,57 +95,66 @@ void nullify(void) {
     functions = nil;
     pipelineStates = nil;
     
-    firstInputBuffer = nil;
-    secondInputBuffer = nil;
-    dimBuffer_uint16 = nil;
-    dimBuffer_uint32 = nil;
-    matrixBuffer = nil;
-    vectorBuffer = nil;
-    outputBuffer = nil;
+    kernel_data = nil;
+    kernel_weights = nil;
+    kernel_biases = nil;
+    kernel_activations = nil;
+    kernel_parameters  = nil;
+    kernel_ground_truth = nil;
 }
 
-void allocate_buffers(size_t n) {
+void allocate_buffers(void * _Nonnull network) {
     if (!allocation) {
-        buffer_size = n;
-        firstInputBuffer = [device newBufferWithLength:n*sizeof(float) options:MTLResourceStorageModeShared];
-        secondInputBuffer = [device newBufferWithLength:n*sizeof(float) options:MTLResourceStorageModeShared];
-        dimBuffer_uint16 = [device newBufferWithLength:sizeof(UInt16) options:(MTLResourceStorageModeShared)];
-        dimBuffer_uint32 = [device newBufferWithLength:2*sizeof(UInt32) options:MTLResourceStorageModeShared];
-        matrixBuffer = [device newBufferWithLength:(n*n)*sizeof(float) options:MTLResourceStorageModeShared];
-        vectorBuffer = [device newBufferWithLength:n options:MTLResourceStorageModeShared];
-        outputBuffer = [device newBufferWithLength:n options:MTLResourceStorageModeShared];
         
-        void *buffer = firstInputBuffer.contents;
-        memset(buffer, 0.0f, buffer_size*sizeof(float));
+        NeuralNetwork *nn = (NeuralNetwork *)network;
+        parameters_container *params = (parameters_container *)malloc(sizeof(parameters_container));
         
-        buffer = secondInputBuffer.contents;
-        memset(buffer, 0.0f, buffer_size*sizeof(float));
+        unsigned int entriesTableSize = nn->data->test->m * nn->number_of_features;
         
-        buffer = dimBuffer_uint16.contents;
-        memset(buffer, 0, sizeof(UInt16));
+        unsigned int weightsTableSize = 0;
+        unsigned int biasesTableSize = 0;
+        for (int l=0; l<nn->parameters->numberOfLayers-1; l++) {
+            weightsTableSize = weightsTableSize + (nn->weightsDimensions[l].m*nn->weightsDimensions[l].n);
+            biasesTableSize = biasesTableSize + nn->biasesDimensions[l].n;
+        }
         
-        buffer = dimBuffer_uint32.contents;
-        memset(buffer, 0, sizeof(UInt32));
+        int max = max_array(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+        unsigned int activationsTableSize = max * nn->data->test->m;
         
-        buffer = matrixBuffer.contents;
-        memset(buffer, 0.0f, (buffer_size*buffer_size)*sizeof(float));
+        kernel_data = [device newBufferWithLength:entriesTableSize*sizeof(float) options:MTLResourceStorageModeShared];
+        kernel_weights = [device newBufferWithLength:weightsTableSize*sizeof(float) options:MTLResourceStorageModeShared];
+        kernel_biases = [device newBufferWithLength:biasesTableSize*sizeof(float) options:MTLResourceStorageModeShared];
+        kernel_activations = [device newBufferWithLength:activationsTableSize*sizeof(float) options:MTLResourceStorageModePrivate];
+        kernel_ground_truth = [device newBufferWithLength:nn->data->test->m*sizeof(float) options:MTLResourceStorageModeShared];
         
-        buffer = vectorBuffer.contents;
-        memset(buffer, 0.0f, buffer_size*sizeof(float));
+        params->gridDimension = nn->data->test->m;
+        params->numberOfLayers = nn->parameters->numberOfLayers;
+        params->numberOfFeatures = nn->parameters->ntLayers[0];
+        params->numberOfOutputs = nn->parameters->ntLayers[nn->parameters->numberOfLayers-1];
+        memcpy(params->weightsDim, nn->weightsDimensions, sizeof(nn->weightsDimensions));
+        memcpy(params->biasesDim, nn->biasesDimensions, sizeof(nn->biasesDimensions));
+        kernel_parameters = [device newBufferWithBytes:params length:sizeof(parameters_container) options:MTLResourceStorageModeShared];
+        free(params);
         
-        buffer = outputBuffer.contents;
-        memset(buffer, 0.0f, buffer_size*sizeof(float));
+        void *buffer = kernel_data.contents;
+        memset(buffer, 0.0f, entriesTableSize*sizeof(float));
+        
+        buffer = kernel_weights.contents;
+        memset(buffer, 0.0f, weightsTableSize*sizeof(float));
+        
+        buffer = kernel_biases.contents;
+        memset(buffer, 0.0f, biasesTableSize*sizeof(float));
     }
 }
 
-void prepare (char * _Nonnull task) {
+void prepare (char * _Nonnull operation) {
     
     id <MTLFunction> function;
     id <MTLComputePipelineState> pipelineState;
     
     if (!allocation) {
-        if (strcmp(task, "feedforward") == 0) {
-            function = [library newFunctionWithName:[NSString stringWithUTF8String:"activation_sigmoid"]];
+        if (strcmp(operation, "feedforward") == 0) {
+            function = [library newFunctionWithName:[NSString stringWithUTF8String:"feedforward"]];
             [functions addObject:function];
             
             NSError *error;
@@ -155,41 +172,82 @@ void prepare (char * _Nonnull task) {
     }
 }
 
-void compute_activation(float * _Nonnull wa, float * _Nonnull b, float * _Nonnull a, size_t n) {
+void format_data(float * _Nonnull * _Nonnull input, unsigned int m, unsigned int n) {
     
-    MTLSize theadGroupSize;
-    MTLSize threadGroups;
+    static bool firstTime = false;
     
-    void *buff = firstInputBuffer.contents;
-    memcpy(buff, wa, n*sizeof(float));
+    if (firstTime) return;
     
-    buff = secondInputBuffer.contents;
-    memcpy(buff, b, n*sizeof(float));
+    if (!firstTime) {
+        float *mat = (float *)malloc((m*n)*sizeof(float));
+        for (int i=0; i<m; i++) {
+            for (int j=0; j<n; j++) {
+                mat[(m*j)+i] = input[i][j];
+            }
+        }
+        
+        void *buffer = kernel_data.contents;
+        memcpy(buffer, mat, (m*n)*sizeof(float));
+        
+        free(mat);
+        firstTime = true;
+    }
+}
+
+void compute_feedforward(void * _Nonnull neural, float * _Nonnull result) {
     
-    theadGroupSize = MTLSizeMake(128, 1, 1);
-    threadGroups = MTLSizeMake(0, 1, 1);
+    MTLSize threadgroupsPerGrid;
+    MTLSize threadsPerThreadgroup;
     
-    int pow = nearestPower2((int)n);
-    threadGroups.width = pow;
+    NeuralNetwork *nn = (NeuralNetwork *)neural;
+    
+    unsigned int weightsTableSize = 0;
+    unsigned int biasesTableSize = 0;
+    for (int l=0; l<nn->parameters->numberOfLayers-1; l++) {
+        weightsTableSize = weightsTableSize + (nn->weightsDimensions[l].m * nn->weightsDimensions[l].n);
+        biasesTableSize = biasesTableSize + nn->biasesDimensions[l].n;
+    }
+    
+    void *buffer = kernel_weights.contents;
+    memcpy(buffer, nn->weights, weightsTableSize*sizeof(float));
+    
+    buffer = kernel_biases.contents;
+    memcpy(buffer, nn->biases, biasesTableSize*sizeof(float));
+    
+    buffer = kernel_ground_truth.contents;
+    float *pt = buffer;
+    for (int i=0; i<nn->data->test->m; i++) {
+        pt[i] = nn->data->test->set[i][nn->number_of_features];
+    }
     
     @autoreleasepool{
+        
+        id <MTLComputePipelineState> pipelineState = pipelineStates[0];
+        unsigned long threadExecutionWidth = pipelineState.threadExecutionWidth;
+        
+        threadgroupsPerGrid = MTLSizeMake((nn->data->test->m + threadExecutionWidth - 1) / threadExecutionWidth, 1, 1);
+        threadsPerThreadgroup = MTLSizeMake(threadExecutionWidth, 1, 1);
+        
         id <MTLCommandBuffer> commandBuffer = commandQueue.commandBuffer;
         id <MTLComputeCommandEncoder> commandEncoder = commandBuffer.computeCommandEncoder;
         [commandEncoder setComputePipelineState:pipelineStates[0]];
         
-        [commandEncoder setBuffer:firstInputBuffer offset:0 atIndex:0];
-        [commandEncoder setBuffer:secondInputBuffer offset:0 atIndex:1];
-        [commandEncoder setBuffer:outputBuffer offset:0 atIndex:2];
+        [commandEncoder setBuffer:kernel_data offset:0 atIndex:0];
+        [commandEncoder setBuffer:kernel_weights offset:0 atIndex:1];
+        [commandEncoder setBuffer:kernel_biases offset:0 atIndex:2];
+        [commandEncoder setBuffer:kernel_activations offset:0 atIndex:3];
+        [commandEncoder setBuffer:kernel_ground_truth offset:0 atIndex:4];
+        [commandEncoder setBuffer:kernel_parameters offset:0 atIndex:5];
         
-        [commandEncoder dispatchThreadgroups:threadGroups threadsPerThreadgroup:theadGroupSize];
+        [commandEncoder dispatchThreadgroups:threadgroupsPerGrid threadsPerThreadgroup:threadsPerThreadgroup];
         
         [commandEncoder endEncoding];
         [commandBuffer commit];
         [commandBuffer waitUntilCompleted];
     }
     
-    void *data = outputBuffer.contents;
-    memcpy(a, data, n*sizeof(float));
+    void *output = kernel_ground_truth.contents;
+    memcpy(result, output, nn->data->test->m*sizeof(float));
 }
 
 MetalCompute * _Nonnull metalCompute(void) {
@@ -201,7 +259,8 @@ MetalCompute * _Nonnull metalCompute(void) {
     metalComppute->allocate_buffers = allocate_buffers;
     metalComppute->nullify = nullify;
     
-    metalComppute->activation = compute_activation;
+    metalComppute->format_data = format_data;
+    metalComppute->feedforward = compute_feedforward;
     
     return metalComppute;
 }

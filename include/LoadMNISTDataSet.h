@@ -12,5 +12,5 @@
 
 #endif /* LoadMNISTDataSet_h */
 
-float * _Nonnull * _Nonnull loadMnist(const char * _Nonnull file, size_t * _Nonnull len1, size_t * _Nonnull len2);
-float * _Nonnull * _Nonnull loadMnistTest(const char * _Nonnull file, size_t * _Nonnull len1, size_t * _Nonnull len2);
+float * _Nonnull * _Nonnull loadMnist(const char * _Nonnull file, unsigned int * _Nonnull len1, unsigned int * _Nonnull len2);
+float * _Nonnull * _Nonnull loadMnistTest(const char * _Nonnull file, unsigned int * _Nonnull len1, unsigned int * _Nonnull len2);

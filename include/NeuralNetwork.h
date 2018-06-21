@@ -16,36 +16,36 @@
 #endif /* NeuralNetwork_h */
 
 typedef struct weightMatrixDimension {
-    size_t m, n;
+    unsigned int m, n;
 } weightMatrixDimension;
 
 typedef struct biasVectorDimension {
-    size_t n;
+    unsigned int n;
 } biasVectorDimension;
 
 typedef struct activationNode {
-    size_t n;
+    unsigned int n;
     float * _Nullable a;
     struct activationNode * _Nullable next;
     struct activationNode * _Nullable previous;
 } activationNode;
 
 typedef struct zNode {
-    size_t n;
+    unsigned int n;
     float * _Nullable z;
     struct zNode * _Nullable next;
     struct zNode * _Nullable previous;
 } zNode;
 
 typedef struct dcdwNode {
-    size_t m, n;
+    unsigned int m, n;
     float * _Nullable * _Nullable dcdw;
     struct dcdwNode * _Nullable next;
     struct dcdwNode * _Nullable previous;
 } dcdwNode;
 
 typedef struct dcdbNode {
-    size_t n;
+    unsigned int n;
     float * _Nullable dcdb;
     struct dcdbNode * _Nullable next;
     struct dcdbNode * _Nullable previous;
@@ -53,17 +53,17 @@ typedef struct dcdbNode {
 
 typedef struct training {
     float * _Nullable *_Nullable set;
-    size_t m, n;
-    float * _Nullable * _Nullable (* _Nullable reader)(const char * _Nonnull fileName, size_t * _Nonnull len1, size_t * _Nonnull len2);
+    unsigned int m, n;
+    float * _Nullable * _Nullable (* _Nullable reader)(const char * _Nonnull fileName, unsigned int * _Nonnull len1, unsigned int * _Nonnull len2);
 } training;
 typedef struct test {
     float * _Nullable *_Nullable set;
-    size_t m, n;
-    float * _Nullable * _Nullable (* _Nullable reader)(const char * _Nonnull fileName, size_t * _Nonnull len1, size_t * _Nonnull len2);
+    unsigned int m, n;
+    float * _Nullable * _Nullable (* _Nullable reader)(const char * _Nonnull fileName, unsigned int * _Nonnull len1, unsigned int * _Nonnull len2);
 } test;
 typedef struct validation {
     float * _Nullable *_Nullable set;
-    size_t m, n;
+    unsigned int m, n;
 } validation;
 
 typedef struct data {
@@ -76,7 +76,7 @@ typedef struct data {
 
 typedef struct parameters {
     int epochs, miniBatchSize;
-    size_t numberOfLayers, numberOfDataDivisions, numberOfClassifications, numberOfInouts;
+    unsigned int numberOfLayers, numberOfDataDivisions, numberOfClassifications, numberOfInouts;
     int ntLayers[100], dataDivisions[2], classifications[100], inoutSizes[2];
     float eta, lambda;
 } parameters;
@@ -89,9 +89,9 @@ typedef struct NeuralNetwork {
     int (* _Nullable load)(void * _Nonnull self, const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile);
     
     int example_idx;
-    size_t number_of_features;
-    size_t number_of_layers;
-    size_t max_number_of_nodes_in_layer;
+    unsigned int number_of_features;
+    unsigned int number_of_layers;
+    unsigned int max_number_of_nodes_in_layer;
     
     float * _Nullable weights;
     float * _Nullable biases;
@@ -117,9 +117,8 @@ typedef struct NeuralNetwork {
     void (* _Nullable batchAccumulation)(void * _Nonnull self);
     void * _Nullable (* _Nullable backpropagation)(void * _Nonnull self);
     void (* _Nonnull feedforward)(void * _Nonnull self);
-    void (* _Nonnull gpuFeedforward)(void * _Nonnull self);
     int (* _Nullable evaluate)(void * _Nonnull self);
-    float (* _Nullable totalCost)(void * _Nonnull self, float * _Nonnull * _Nonnull data, size_t m, bool convert);
+    float (* _Nullable totalCost)(void * _Nonnull self, float * _Nonnull * _Nonnull data, unsigned int m, bool convert);
 } NeuralNetwork;
 
 NeuralNetwork * _Nonnull newNeuralNetwork(void);

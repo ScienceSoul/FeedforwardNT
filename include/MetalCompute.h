@@ -13,11 +13,12 @@
 typedef struct MetalCompute {
     
     void (* _Nullable init)(void);
-    void (* _Nullable prepare)(char * _Nonnull task);
-    void (* _Nullable allocate_buffers)(size_t n);
+    void (* _Nullable prepare)(char * _Nonnull operation);
+    void (* _Nullable allocate_buffers)(void * _Nonnull network);
     void (* _Nullable nullify)(void);
     
-    void (* _Nullable activation)(float * _Nonnull wa, float * _Nonnull b, float * _Nonnull a, size_t n);
+    void (* _Nullable format_data)(float * _Nonnull * _Nonnull input, unsigned int m, unsigned int n);
+    void (* _Nullable feedforward)(void * _Nonnull neural, float * _Nonnull result);
     
 } MetalCompute;
 

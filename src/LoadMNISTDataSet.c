@@ -14,7 +14,7 @@ void endianSwap(unsigned int *x) {
     *x = (*x>>24)|((*x<<8)&0x00FF0000)|((*x>>8)&0x0000FF00)|(*x<<24);
 }
 
-float * _Nullable * _Nullable readBinaryFile(const char * _Nonnull file, size_t * _Nonnull len1, size_t * _Nonnull len2, bool testData) {
+float * _Nullable * _Nullable readBinaryFile(const char * _Nonnull file, unsigned int * _Nonnull len1, unsigned int * _Nonnull len2, bool testData) {
     
     FILE *fimage = fopen(file, "rb");
     FILE *flabel = NULL;
@@ -121,7 +121,7 @@ float * _Nullable * _Nullable readBinaryFile(const char * _Nonnull file, size_t 
     return dataSet;
 }
 
-float * _Nonnull * _Nonnull loadMnist(const char * _Nonnull file, size_t * _Nonnull len1, size_t * _Nonnull len2) {
+float * _Nonnull * _Nonnull loadMnist(const char * _Nonnull file, unsigned int * _Nonnull len1, unsigned int * _Nonnull len2) {
     
     float **dataSet = readBinaryFile(file, len1, len2, false);
     if (dataSet == NULL) {
@@ -131,7 +131,7 @@ float * _Nonnull * _Nonnull loadMnist(const char * _Nonnull file, size_t * _Nonn
     return dataSet;
 }
 
-float * _Nonnull * _Nonnull loadMnistTest(const char * _Nonnull file, size_t * _Nonnull len1, size_t * _Nonnull len2) {
+float * _Nonnull * _Nonnull loadMnistTest(const char * _Nonnull file, unsigned int * _Nonnull len1, unsigned int * _Nonnull len2) {
     
     float **dataSet = readBinaryFile(file, len1, len2, true);
     if (dataSet == NULL) {
