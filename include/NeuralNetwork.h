@@ -75,6 +75,9 @@ typedef struct data {
 } data;
 
 typedef struct parameters {
+    char supported_parameters[9][256];
+    char data[256], dataName[256];
+    unsigned int number_of_suported_parameters;
     int epochs, miniBatchSize;
     unsigned int numberOfLayers, numberOfClassifications;
     int topology[100], split[2], classifications[100];
@@ -86,9 +89,10 @@ typedef struct NeuralNetwork {
     data * _Nullable data;
     float * _Nullable * _Nullable batch;
     parameters * _Nullable parameters;
-    int (* _Nullable load)(void * _Nonnull self, const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile);
+    int (* _Nullable load)(void * _Nonnull self, const char * _Nonnull paraFile);
     
     int example_idx;
+    unsigned int number_of_parameters;
     unsigned int number_of_features;
     unsigned int number_of_layers;
     unsigned int max_number_of_nodes_in_layer;

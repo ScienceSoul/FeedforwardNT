@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		013B952920CF658E00E033FF /* MetalKernels.metal in Sources */ = {isa = PBXBuildFile; fileRef = 013B952820CE174B00E033FF /* MetalKernels.metal */; };
+		0161750420DC935E00FC40FF /* Parsing.c in Sources */ = {isa = PBXBuildFile; fileRef = 0161750320DC935E00FC40FF /* Parsing.c */; };
 		01B73FA020C0E5060096F830 /* LoadMNISTDataSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */; };
 		01F6EC0E20CA696A00CC5606 /* MetalCompute.m in Sources */ = {isa = PBXBuildFile; fileRef = 01F6EC0D20CA696A00CC5606 /* MetalCompute.m */; };
 		01F6EC1120CDF23600CC5606 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01F6EC1020CDF23600CC5606 /* Metal.framework */; };
@@ -36,6 +37,8 @@
 
 /* Begin PBXFileReference section */
 		013B952820CE174B00E033FF /* MetalKernels.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; name = MetalKernels.metal; path = metal/MetalKernels.metal; sourceTree = SOURCE_ROOT; };
+		0161750320DC935E00FC40FF /* Parsing.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = Parsing.c; path = src/Parsing.c; sourceTree = "<group>"; };
+		0161750520DC939500FC40FF /* Parsing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Parsing.h; path = include/Parsing.h; sourceTree = "<group>"; };
 		01B73F9E20C0E2FA0096F830 /* LoadMNISTDataSet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadMNISTDataSet.h; path = include/LoadMNISTDataSet.h; sourceTree = "<group>"; };
 		01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = LoadMNISTDataSet.c; path = src/LoadMNISTDataSet.c; sourceTree = "<group>"; };
 		01F6EC0D20CA696A00CC5606 /* MetalCompute.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = MetalCompute.m; path = src/MetalCompute.m; sourceTree = "<group>"; };
@@ -93,6 +96,7 @@
 				01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */,
 				7332085E1F14D66700B4611F /* main.c */,
 				7332085F1F14D66700B4611F /* Memory.c */,
+				0161750320DC935E00FC40FF /* Parsing.c */,
 				733208601F14D66700B4611F /* NeuralNetwork.c */,
 				733208611F14D66700B4611F /* OpenCLUtils.c */,
 				01F6EC0D20CA696A00CC5606 /* MetalCompute.m */,
@@ -108,6 +112,7 @@
 				7332086D1F14D68700B4611F /* LoadIrisDataSet.h */,
 				01B73F9E20C0E2FA0096F830 /* LoadMNISTDataSet.h */,
 				7332086E1F14D68700B4611F /* Memory.h */,
+				0161750520DC939500FC40FF /* Parsing.h */,
 				7332086F1F14D68700B4611F /* NeuralNetwork.h */,
 				733208701F14D68700B4611F /* OpenCLUtils.h */,
 				01F6EC0F20CA69D800CC5606 /* MetalCompute.h */,
@@ -208,6 +213,7 @@
 			files = (
 				733208651F14D66700B4611F /* main.c in Sources */,
 				733208671F14D66700B4611F /* NeuralNetwork.c in Sources */,
+				0161750420DC935E00FC40FF /* Parsing.c in Sources */,
 				013B952920CF658E00E033FF /* MetalKernels.metal in Sources */,
 				733208691F14D66700B4611F /* TimeProfile.c in Sources */,
 				7332086A1F14D66700B4611F /* Utils.c in Sources */,

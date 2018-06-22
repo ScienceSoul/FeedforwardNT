@@ -1,25 +1,30 @@
 {
-iris
-/Users/hakimeseddik/Documents/FeedforwardNT/iris/iris.dat
-!
-!Netdwork!definitions
-{4,30,3}
-!
-!Training!data!test!data
-{120,30}
-!
-!Classifications
-{0,1,2}
-!
-!epochs
-100
-!
-!Mini!batch!size
-10
-!
-!Eta
-0.3
-!
-!Lambda
-1.0
+  define {
+      data_name:iris
+  }
+  define {
+      data:/Users/hakimeseddik/Documents/FeedforwardNT/iris/iris.dat
+  }
+  define {
+      topology:[4,30,3]
+  }
+  define {
+      split:[120,30]
+  }
+  define {
+      classification:[0,1,2]
+  }
+  define {
+      epochs:100
+  }
+  define {
+      batch_size:10
+  }
+  define {
+      eta:0.3
+  }
+  define {
+      lambda:1.0
+  }
 }
+

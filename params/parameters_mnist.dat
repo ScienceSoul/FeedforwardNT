@@ -1,25 +1,30 @@
 {
-mnist
-/Users/hakimeseddik/Desktop/MNIST/train-images-idx3-ubyte
-!
-!Netdwork!definitions
-{784,30,10}
-!
-!Training!data!evaluation!test!data
-{50000,10000}
-!
-!Classifications
-{0,1,2,3,4,5,6,7,8,9}
-!
-!epochs
-30
-!
-!Mini!batch!size
-10
-!
-!Eta
-0.5
-!
-!Lambda
-5.0
+  define {
+      data_name:mnist
+  }
+  define {
+       data:/Users/hakimeseddik/Desktop/MNIST/train-images-idx3-ubyte
+  }
+  define {
+       topology:[784,30,10]
+  }
+  define {
+       split:[50000,10000]
+  }
+  define {
+       classification:[0,1,2,3,4,5,6,7,8,9]
+  }
+  define {
+       epochs:30
+  }
+  define {
+       batch_size:10
+  }
+  define {
+       eta:0.5
+  }
+  define {
+       lambda:5.0
+  }
 }
+

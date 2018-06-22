@@ -13,8 +13,6 @@ bool metal = false;
 
 int main(int argc, const char * argv[]) {
     
-    char dataSetName[256];
-    char trainFile[1024];
     char testFile[1024];
     
     if (argc < 2) {
@@ -83,13 +81,13 @@ int main(int argc, const char * argv[]) {
     
     if (err) fatal(PROGRAM_NAME, "problem in argument list. Possibly unrecognized argument.");
     
-    memset(dataSetName, 0, sizeof(dataSetName));
-    memset(trainFile, 0, sizeof(trainFile));
+    //memset(dataSetName, 0, sizeof(dataSetName));
+    //memset(trainFile, 0, sizeof(trainFile));
     
     // Instantiate a neural network and load its parameters...
     fprintf(stdout, "%s: load the network and its input parameters:\n", PROGRAM_NAME);
     NeuralNetwork *neural = newNeuralNetwork();
-    if (neural->load((void *)neural, argv[1], dataSetName, trainFile) != 0) {
+    if (neural->load((void *)neural, argv[1]) != 0) {
         fatal(PROGRAM_NAME, "failure reading input parameters.");
     }
     fprintf(stdout, "%s: done.\n", PROGRAM_NAME);
@@ -101,25 +99,25 @@ int main(int argc, const char * argv[]) {
     // Allocate and initialize the network data containers
     neural->data->init((void *)neural);
     
-    if (strcmp(dataSetName, "iris") == 0) {
+    if (strcmp(neural->parameters->dataName, "iris") == 0) {
         neural->data->training->reader = loadIris;
-    } else if (strcmp(dataSetName, "mnist") == 0) {
+    } else if (strcmp(neural->parameters->dataName, "mnist") == 0) {
         neural->data->training->reader = loadMnist;
     } else {
         fatal(PROGRAM_NAME, "Program can only train for Iris or MNIST data sets.");
     }
     
     if (availableTestData) {
-        if (strcmp(dataSetName, "mnist") != 0) fatal(PROGRAM_NAME, "Program can only use MNIST test data.");
+        if (strcmp(neural->parameters->dataName, "mnist") != 0) fatal(PROGRAM_NAME, "Program can only use MNIST test data.");
         fprintf(stdout, "%s: use test data from test data set.\n", PROGRAM_NAME);
         neural->data->test->reader = loadMnistTest;
     }
     
     // Load all training/test data
-    neural->data->load((void *)neural, dataSetName, trainFile, testFile, availableTestData);
+    neural->data->load((void *)neural, neural->parameters->dataName, neural->parameters->data, testFile, availableTestData);
     fprintf(stdout, "%s: done.\n", PROGRAM_NAME);
     
-    fprintf(stdout, "%s: train neural network with the %s data set.\n", PROGRAM_NAME, dataSetName);
+    fprintf(stdout, "%s: train neural network with the %s data set.\n", PROGRAM_NAME, neural->parameters->dataName);
 #ifdef COMPUTE_TOTAL_COST
     bool showCost = true;
 #else

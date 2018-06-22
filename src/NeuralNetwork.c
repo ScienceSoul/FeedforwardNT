@@ -13,8 +13,9 @@
 #endif
 
 #include "NeuralNetwork.h"
+#include "Parsing.h"
 
-static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile);
+static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile);
 
 static void initNeuralData(void * _Nonnull self);
 static void loadData(void * _Nonnull self, const char * _Nonnull dataSetName, const char * _Nonnull trainFile, const char * _Nonnull testFile, bool testData);
@@ -58,73 +59,64 @@ static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, u
 
 static void feedforward(void * _Nonnull self);
 
-static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, char * _Nonnull dataSetName, char * _Nonnull dataSetFile) {
+static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
+    
+    definition *definitions = NULL;
+    
+    definitions = getDefinitions(self, paraFile, "define");
+    if (definitions == NULL) {
+        fatal(PROGRAM_NAME, "problem finding any parameter definition.");
+    }
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
-    // Very basic parsing of input parameters file.
-    // TODO: Needs to change that to something more flexible and with better input validation
-    
-    FILE *f1 = fopen(paraFile,"r");
-    if(!f1) {
-        fprintf(stdout,"%s: can't open the input parameters file.\n", PROGRAM_NAME);
-        return -1;
-    }
-    
-    char string[256];
-    int lineCount = 1;
-    int empty = 0;
-    while (1) {
-        fscanf(f1,"%s\n", string);
-        
-        if (lineCount == 1 && string[0] != '{') {
-            fatal(PROGRAM_NAME, "syntax error in the file for the input parameters.");
-        } else if (lineCount == 1) {
-            lineCount++;
-            continue;
-        } else if(string[0] == '\0') {
-            empty++;
-            if (empty > 1000) {
-                fatal(PROGRAM_NAME, "syntax error in the file for the input keys. File should end with <}>.");
+    definition *pt = definitions;
+    while (pt != NULL) {
+        dictionary *field = pt->field;
+        while (field != NULL) {
+            bool found = false;
+            for (int i=0; i<nn->parameters->number_of_suported_parameters; i++) {
+                if (strcmp(field->key, nn->parameters->supported_parameters[i]) == 0) {
+                    found = true;
+                    break;
+                }
             }
-            continue;
-        }
-        
-        if (string[0] == '!') continue; // Comment line
-        if (string[0] == '}') break;    // End of file
-        
-        if (lineCount == 2) {
-            memcpy(dataSetName, string, strlen(string)*sizeof(char));
-        }
-        if (lineCount == 3) {
-            memcpy(dataSetFile, string, strlen(string)*sizeof(char));
-        }
-        if (lineCount == 4) {
-            parseArgument(string, "network definition", nn->parameters->topology, &nn->parameters->numberOfLayers);
-        }
-        if (lineCount == 5) {
-            unsigned int n;
-            parseArgument(string, "data divisions", nn->parameters->split, &n);
-            if (n != 2) {
-                fatal(PROGRAM_NAME, " input data set should only be divided in two parts: one for training, one for testing.");
+            if (!found) fatal(PROGRAM_NAME, "key for parameter not recognized:", field->key);
+            
+            if (strcmp(field->key, "data_name") == 0) {
+                strcpy(nn->parameters->dataName, field->value);
+                
+            } else if (strcmp(field->key, "data") == 0) {
+                strcpy(nn->parameters->data, field->value);
+                
+            } else if (strcmp(field->key, "topology") == 0) {
+                parseArgument(field->value, field->key, nn->parameters->topology, &nn->parameters->numberOfLayers);
+                
+            } else if (strcmp(field->key, "split") == 0) {
+                unsigned int n;
+                parseArgument(field->value,  field->key, nn->parameters->split, &n);
+                if (n != 2) {
+                    fatal(PROGRAM_NAME, " input data set should only be splitted in two parts: one for training, one for testing/evaluation.");
+                }
+                
+            } else if (strcmp(field->key, "classification") == 0) {
+                 parseArgument(field->value, field->key, nn->parameters->classifications, &nn->parameters->numberOfClassifications);
+                
+            } else if (strcmp(field->key, "epochs") == 0) {
+                nn->parameters->epochs = atoi(field->value);
+            
+            } else if (strcmp(field->key, "batch_size") == 0) {
+                nn->parameters->miniBatchSize = atoi(field->value);
+                
+            } else if (strcmp(field->key, "eta") == 0) {
+                nn->parameters->eta = strtof(field->value, NULL);
+            
+            } else if (strcmp(field->key, "lambda") == 0) {
+                nn->parameters->lambda = strtof(field->value, NULL);
             }
+            field = field->next;
         }
-        if (lineCount == 6) {
-            parseArgument(string, "classifications", nn->parameters->classifications, &nn->parameters->numberOfClassifications);
-        }
-        if (lineCount == 7) {
-            nn->parameters->epochs = atoi(string);
-        }
-        if (lineCount == 8) {
-            nn->parameters->miniBatchSize = atoi(string);
-        }
-        if (lineCount == 9) {
-            nn->parameters->eta = strtof(string, NULL);
-        }
-        if (lineCount == 10) {
-            nn->parameters->lambda = strtof(string, NULL);
-        }
-        lineCount++;
+        pt = pt->next;
     }
     
     return 0;
@@ -437,6 +429,19 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
                           .dcdwsList=NULL, .dcdbsList=NULL, .delta_dcdwsList=NULL, .delta_dcdbsList=NULL, .gpu=NULL};
     
     nn->parameters = (parameters *)malloc(sizeof(parameters));
+    strcpy(nn->parameters->supported_parameters[0], "data_name");
+    strcpy(nn->parameters->supported_parameters[1], "data");
+    strcpy(nn->parameters->supported_parameters[2], "topology");
+    strcpy(nn->parameters->supported_parameters[3], "split");
+    strcpy(nn->parameters->supported_parameters[4], "classification");
+    strcpy(nn->parameters->supported_parameters[5], "epochs");
+    strcpy(nn->parameters->supported_parameters[6], "batch_size");
+    strcpy(nn->parameters->supported_parameters[7], "eta");
+    strcpy(nn->parameters->supported_parameters[8], "lambda");
+    nn->parameters->number_of_suported_parameters = 9;
+    
+    bzero(nn->parameters->data, 256);
+    bzero(nn->parameters->dataName, 256);
     nn->parameters->epochs = 0;
     nn->parameters->miniBatchSize = 0;
     nn->parameters->eta = 0.0f;
@@ -469,6 +474,7 @@ static void genesis(void * _Nonnull self) {
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
     nn->example_idx = 0;
+    nn->number_of_parameters = 0;
     nn->number_of_features = 0;
     nn->number_of_layers = nn->parameters->numberOfLayers;
     nn->max_number_of_nodes_in_layer = max_array(nn->parameters->topology, nn->parameters->numberOfLayers);

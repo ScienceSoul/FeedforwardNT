@@ -23,8 +23,11 @@
 
 void __attribute__((overloadable)) fatal(char head[_Nonnull]);
 void __attribute__((overloadable)) fatal(char head[_Nonnull], char message[_Nonnull]);
+void __attribute__((overloadable)) fatal(char head [_Nonnull], char message[_Nonnull], char string [_Nonnull]);
 void __attribute__((overloadable)) fatal(char head[_Nonnull], char message[_Nonnull], int n);
 void __attribute__((overloadable)) fatal(char head[_Nonnull], char message[_Nonnull], double n);
+void __attribute__((overloadable)) fatal(char head [_Nonnull], char message[_Nonnull], char string [_Nonnull]);
+
 void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_Nonnull]);
 void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_Nonnull], int n);
 void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_Nonnull], double n);

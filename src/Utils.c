@@ -13,31 +13,37 @@
 #include "Memory.h"
 
 static int formatType;
-void format(char * _Nullable head, char * _Nullable message, int *iValue, double *dValue);
+void format(char * _Nullable head, char * _Nullable message, int * _Nullable iValue, double * _Nullable dValue, char * _Nullable str);
 
 void __attribute__((overloadable)) fatal(char head[]) {
     
     formatType = 1;
-    format(head, NULL, NULL, NULL);
+    format(head, NULL, NULL, NULL, NULL);
 }
 
 void __attribute__((overloadable)) fatal(char head[], char message[]) {
     
     formatType = 2;
-    format(head, message, NULL, NULL);
+    format(head, message, NULL, NULL, NULL);
 }
 
 void __attribute__((overloadable)) fatal(char head[], char message[], int n) {
     
     formatType = 3;
-    format(head, message, &n, NULL);
+    format(head, message, &n, NULL, NULL);
 }
 
 void __attribute__((overloadable)) fatal(char head[], char message[], double n) {
     
     formatType = 4;
-    format(head, message, NULL, &n);
+    format(head, message, NULL, &n, NULL);
 }
+
+void __attribute__((overloadable)) fatal(char head [_Nonnull], char message[_Nonnull], char str[_Nonnull]) {
+    formatType = 5;
+    format(head, message, NULL, NULL, str);
+}
+
 
 void __attribute__((overloadable)) warning(char head[], char message[])
 {
@@ -54,7 +60,7 @@ void __attribute__((overloadable)) warning(char head[], char message[], double n
     fprintf(stdout, "%s: %s %f\n", head, message, n);
 }
 
-void format(char * _Nullable head, char * _Nullable message, int *iValue, double *dValue) {
+void format(char * _Nullable head, char * _Nullable message, int * _Nullable iValue, double * _Nullable dValue, char * _Nullable str) {
     
     fprintf(stderr, "##                    A FATAL ERROR occured                   ##\n");
     fprintf(stderr, "##        Please look at the error log for diagnostic         ##\n");
@@ -64,11 +70,13 @@ void format(char * _Nullable head, char * _Nullable message, int *iValue, double
     } else if (formatType == 2) {
         fprintf(stderr, "%s: %s\n", head, message);
     } else if (formatType == 3) {
-        fprintf(stderr, "%s: %s %d\n", head, message, *iValue);
+        fprintf(stderr, "%s: %s %d.\n", head, message, *iValue);
     } else if (formatType == 4) {
-        fprintf(stderr, "%s: %s %f\n", head, message, *dValue);
+        fprintf(stderr, "%s: %s %f.\n", head, message, *dValue);
+    } else if (formatType == 5) {
+        fprintf(stderr, "%s: %s %s.\n", head, message, str);
     }
-    if (formatType == 2 || formatType == 3 || formatType == 4)
+    if (formatType == 2 || formatType == 3 || formatType == 4 || formatType == 5)
         fprintf(stderr, "Program will abort...\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "################################################################\n");
@@ -102,19 +110,19 @@ void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumen
     int idx = 0;
     *numberOfItems = 0;
     
-    fprintf(stdout, "%s: parsing the parameter %s: %s.\n", PROGRAM_NAME, argumentName, argument);
+    fprintf(stdout, "%s: parsing the key value %s: %s.\n", PROGRAM_NAME, argumentName, argument);
     
     size_t len = strlen(argument);
-    if (argument[0] != '{' || argument[len-1] != '}') fatal(PROGRAM_NAME, "input argument for network definition should start with <{> and end with <}>.");
+    if (argument[0] != '[' || argument[len-1] != ']') fatal(PROGRAM_NAME, "syntax error in key value. Collections must use the [ ] syntax.");
     
-    while (argument[idx] != '}') {
-        if (argument[idx] == '{') {
-            if (argument[idx+1] == ',' || argument[idx+1] == '{') fatal(PROGRAM_NAME, "syntax error <{,> or <{{> in imput argument for network definition.");
+    while (argument[idx] != ']') {
+        if (argument[idx] == '[') {
+            if (argument[idx+1] == ',' || argument[idx+1] == '[') fatal(PROGRAM_NAME, "syntax error possibly <[,> or <[[> in key value");
             idx++;
             continue;
         }
         if (argument[idx] == ',') {
-            if (argument[idx+1] == '}' || argument[idx+1] == ',') fatal(PROGRAM_NAME, "syntax error <,}> or <,,> in imput argument for network definition.");
+            if (argument[idx+1] == ']' || argument[idx+1] == ',') fatal(PROGRAM_NAME, "syntax error possibly <,]> or <,,> in key value.");
             (*numberOfItems)++;
             idx++;
             continue;
