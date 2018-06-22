@@ -19,7 +19,7 @@ static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, 
 static void initNeuralData(void * _Nonnull self);
 static void loadData(void * _Nonnull self, const char * _Nonnull dataSetName, const char * _Nonnull trainFile, const char * _Nonnull testFile, bool testData);
 
-static float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, unsigned int start, unsigned int end, unsigned int * _Nonnull t1, unsigned int * _Nonnull t2, int * _Nonnull classifications, unsigned int numberOfClassifications, int * _Nonnull inoutSizes);
+static float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, unsigned int start, unsigned int end, unsigned int * _Nonnull t1, unsigned int * _Nonnull t2, int * _Nonnull classifications, unsigned int numberOfClassifications, int * _Nonnull ntLayers, int numberOfLayers);
 
 static float * _Nonnull * _Nonnull getData(float * _Nonnull * _Nonnull dataSet, unsigned int len1, unsigned int len2, unsigned int start, unsigned int end, unsigned int * _Nonnull t1, unsigned int * _Nonnull t2);
 
@@ -109,18 +109,15 @@ static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, 
             parseArgument(string, "classifications", nn->parameters->classifications, &nn->parameters->numberOfClassifications);
         }
         if (lineCount == 7) {
-            parseArgument(string, "inouts", nn->parameters->inoutSizes, &nn->parameters->numberOfInouts);
-        }
-        if (lineCount == 8) {
             nn->parameters->epochs = atoi(string);
         }
-        if (lineCount == 9) {
+        if (lineCount == 8) {
             nn->parameters->miniBatchSize = atoi(string);
         }
-        if (lineCount == 10) {
+        if (lineCount == 9) {
             nn->parameters->eta = strtof(string, NULL);
         }
-        if (lineCount == 11) {
+        if (lineCount == 10) {
             nn->parameters->lambda = strtof(string, NULL);
         }
         lineCount++;
@@ -128,15 +125,6 @@ static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, 
     
     if (nn->parameters->numberOfDataDivisions != 2) {
         fatal(PROGRAM_NAME, " input data set should only be divided in two parts: one for training, one for testing.");
-    }
-    if (nn->parameters->numberOfInouts != 2) {
-        fatal(PROGRAM_NAME, "only define one size for inputs and one size for outputs.");
-    }
-    if (nn->parameters->ntLayers[0] != nn->parameters->inoutSizes[0] || nn->parameters->ntLayers[(int)(nn->parameters->numberOfLayers)-1] != nn->parameters->inoutSizes[1]) {
-        fatal(PROGRAM_NAME, "mismatch between size of network first/last layer and the nunmber of inputs/outputs.");
-    }
-    if (nn->parameters->inoutSizes[1] < nn->parameters->numberOfClassifications || nn->parameters->inoutSizes[1] > nn->parameters->numberOfClassifications) {
-        fatal(PROGRAM_NAME, "mismatch between number of classifications and the number of outputs.");
     }
     
     return 0;
@@ -173,7 +161,7 @@ static void loadData(void * _Nonnull self, const char * _Nonnull dataSetName, co
     raw_training = nn->data->training->reader(trainFile, &len1, &len2);
     shuffle(raw_training, len1, len2);
     
-    nn->data->training->set = createTrainigData(raw_training, 0, nn->parameters->dataDivisions[0], &nn->data->training->m, &nn->data->training->n, nn->parameters->classifications, nn->parameters->numberOfClassifications, nn->parameters->inoutSizes);
+    nn->data->training->set = createTrainigData(raw_training, 0, nn->parameters->dataDivisions[0], &nn->data->training->m, &nn->data->training->n, nn->parameters->classifications, nn->parameters->numberOfClassifications, nn->parameters->ntLayers, nn->parameters->numberOfLayers);
     
     if (testData) {
         nn->data->test->set = nn->data->test->reader(testFile, &nn->data->test->m, &nn->data->test->n);
@@ -183,27 +171,27 @@ static void loadData(void * _Nonnull self, const char * _Nonnull dataSetName, co
     }
 }
 
-static float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, unsigned int start, unsigned int end, unsigned int * _Nonnull t1, unsigned int * _Nonnull t2, int * _Nonnull classifications, unsigned int numberOfClassifications, int * _Nonnull inoutSizes) {
+static float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull dataSet, unsigned int start, unsigned int end, unsigned int * _Nonnull t1, unsigned int * _Nonnull t2, int * _Nonnull classifications, unsigned int numberOfClassifications, int * _Nonnull ntLayers, int numberOfLayers) {
     
     float **trainingData = NULL;
-    trainingData = floatmatrix(0, end-1, 0, (inoutSizes[0]+inoutSizes[1])-1);
+    trainingData = floatmatrix(0, end-1, 0, (ntLayers[0]+ntLayers[numberOfLayers-1])-1);
     *t1 = end;
-    *t2 = inoutSizes[0]+inoutSizes[1];
+    *t2 = ntLayers[0]+ntLayers[numberOfLayers-1];
     
-    if (inoutSizes[1] != numberOfClassifications) {
-        fatal(PROGRAM_NAME, "the number of classifications should be equal to the number of activations.");
+    if (ntLayers[numberOfLayers-1] != numberOfClassifications) {
+        fatal(PROGRAM_NAME, "the number of classifications should be equal to the number of activations at the output layer.");
     }
     
     for (int i=0; i<end; i++) {
-        for (int j=0; j<inoutSizes[0]; j++) {
+        for (int j=0; j<ntLayers[0]; j++) {
             trainingData[i][j] = dataSet[i][j];
         }
         
-        // Binarization of the input ground-truth to get a one-hot-vector
+        // Binarization of t    he input ground-truth to get a one-hot-vector
         for (int k=0; k<numberOfClassifications; k++) {
-            if (dataSet[i][inoutSizes[0]] == (float)classifications[k]) {
-                trainingData[i][inoutSizes[0]+k] = 1.0f;
-            } else trainingData[i][inoutSizes[0]+k] = 0.0f;
+            if (dataSet[i][ntLayers[0]] == (float)classifications[k]) {
+                trainingData[i][ntLayers[0]+k] = 1.0f;
+            } else trainingData[i][ntLayers[0]+k] = 0.0f;
         }
     }
     
@@ -456,7 +444,6 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     memset(nn->parameters->ntLayers, 0, sizeof(nn->parameters->ntLayers));
     memset(nn->parameters->classifications, 0, sizeof(nn->parameters->classifications));
     memset(nn->parameters->dataDivisions, 0, sizeof(nn->parameters->dataDivisions));
-    memset(nn->parameters->inoutSizes, 0, sizeof(nn->parameters->inoutSizes));
     nn->load = loadParameters;
     
     nn->genesis = genesis;
@@ -637,7 +624,7 @@ static void gpu_alloc(void * _Nonnull self) {
 static void computeNeural(void * _Nonnull self, bool * _Nullable showTotalCost) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
-    nn->number_of_features = nn->parameters->inoutSizes[0];
+    nn->number_of_features = nn->parameters->ntLayers[0];
     
     // Stochastic gradient descent
     float **miniBatch = floatmatrix(0, nn->parameters->miniBatchSize-1, 0, nn->data->training->n-1);

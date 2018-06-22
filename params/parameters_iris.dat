@@ -11,9 +11,6 @@ iris
 !Classifications
 {0,1,2}
 !
-!Size!imputs!outputs
-{4,3}
-!
 !epochs
 100
 !
