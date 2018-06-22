@@ -103,7 +103,11 @@ static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, 
             parseArgument(string, "network definition", nn->parameters->topology, &nn->parameters->numberOfLayers);
         }
         if (lineCount == 5) {
-            parseArgument(string, "data divisions", nn->parameters->dataDivisions, &nn->parameters->numberOfDataDivisions);
+            unsigned int n;
+            parseArgument(string, "data divisions", nn->parameters->split, &n);
+            if (n != 2) {
+                fatal(PROGRAM_NAME, " input data set should only be divided in two parts: one for training, one for testing.");
+            }
         }
         if (lineCount == 6) {
             parseArgument(string, "classifications", nn->parameters->classifications, &nn->parameters->numberOfClassifications);
@@ -121,10 +125,6 @@ static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, 
             nn->parameters->lambda = strtof(string, NULL);
         }
         lineCount++;
-    }
-    
-    if (nn->parameters->numberOfDataDivisions != 2) {
-        fatal(PROGRAM_NAME, " input data set should only be divided in two parts: one for training, one for testing.");
     }
     
     return 0;
@@ -161,13 +161,13 @@ static void loadData(void * _Nonnull self, const char * _Nonnull dataSetName, co
     raw_training = nn->data->training->reader(trainFile, &len1, &len2);
     shuffle(raw_training, len1, len2);
     
-    nn->data->training->set = createTrainigData(raw_training, 0, nn->parameters->dataDivisions[0], &nn->data->training->m, &nn->data->training->n, nn->parameters->classifications, nn->parameters->numberOfClassifications, nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->data->training->set = createTrainigData(raw_training, 0, nn->parameters->split[0], &nn->data->training->m, &nn->data->training->n, nn->parameters->classifications, nn->parameters->numberOfClassifications, nn->parameters->topology, nn->parameters->numberOfLayers);
     
     if (testData) {
         nn->data->test->set = nn->data->test->reader(testFile, &nn->data->test->m, &nn->data->test->n);
-        nn->data->validation->set = getData(raw_training, len1, len2, nn->parameters->dataDivisions[0], nn->parameters->dataDivisions[1], &nn->data->validation->m, &nn->data->validation->n);
+        nn->data->validation->set = getData(raw_training, len1, len2, nn->parameters->split[0], nn->parameters->split[1], &nn->data->validation->m, &nn->data->validation->n);
     } else {
-        nn->data->test->set = getData(raw_training, len1, len2, nn->parameters->dataDivisions[0], nn->parameters->dataDivisions[1], &nn->data->test->m, &nn->data->test->n);
+        nn->data->test->set = getData(raw_training, len1, len2, nn->parameters->split[0], nn->parameters->split[1], &nn->data->test->m, &nn->data->test->n);
     }
 }
 
@@ -443,7 +443,7 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     nn->parameters->lambda = 0.0f;
     memset(nn->parameters->topology, 0, sizeof(nn->parameters->topology));
     memset(nn->parameters->classifications, 0, sizeof(nn->parameters->classifications));
-    memset(nn->parameters->dataDivisions, 0, sizeof(nn->parameters->dataDivisions));
+    memset(nn->parameters->split, 0, sizeof(nn->parameters->split));
     nn->load = loadParameters;
     
     nn->genesis = genesis;

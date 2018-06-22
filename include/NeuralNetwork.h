@@ -76,8 +76,8 @@ typedef struct data {
 
 typedef struct parameters {
     int epochs, miniBatchSize;
-    unsigned int numberOfLayers, numberOfDataDivisions, numberOfClassifications;
-    int topology[100], dataDivisions[2], classifications[100];
+    unsigned int numberOfLayers, numberOfClassifications;
+    int topology[100], split[2], classifications[100];
     float eta, lambda;
 } parameters;
 
