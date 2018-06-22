@@ -100,7 +100,7 @@ static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile, 
             memcpy(dataSetFile, string, strlen(string)*sizeof(char));
         }
         if (lineCount == 4) {
-            parseArgument(string, "network definition", nn->parameters->ntLayers, &nn->parameters->numberOfLayers);
+            parseArgument(string, "network definition", nn->parameters->topology, &nn->parameters->numberOfLayers);
         }
         if (lineCount == 5) {
             parseArgument(string, "data divisions", nn->parameters->dataDivisions, &nn->parameters->numberOfDataDivisions);
@@ -161,7 +161,7 @@ static void loadData(void * _Nonnull self, const char * _Nonnull dataSetName, co
     raw_training = nn->data->training->reader(trainFile, &len1, &len2);
     shuffle(raw_training, len1, len2);
     
-    nn->data->training->set = createTrainigData(raw_training, 0, nn->parameters->dataDivisions[0], &nn->data->training->m, &nn->data->training->n, nn->parameters->classifications, nn->parameters->numberOfClassifications, nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->data->training->set = createTrainigData(raw_training, 0, nn->parameters->dataDivisions[0], &nn->data->training->m, &nn->data->training->n, nn->parameters->classifications, nn->parameters->numberOfClassifications, nn->parameters->topology, nn->parameters->numberOfLayers);
     
     if (testData) {
         nn->data->test->set = nn->data->test->reader(testFile, &nn->data->test->m, &nn->data->test->n);
@@ -441,7 +441,7 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     nn->parameters->miniBatchSize = 0;
     nn->parameters->eta = 0.0f;
     nn->parameters->lambda = 0.0f;
-    memset(nn->parameters->ntLayers, 0, sizeof(nn->parameters->ntLayers));
+    memset(nn->parameters->topology, 0, sizeof(nn->parameters->topology));
     memset(nn->parameters->classifications, 0, sizeof(nn->parameters->classifications));
     memset(nn->parameters->dataDivisions, 0, sizeof(nn->parameters->dataDivisions));
     nn->load = loadParameters;
@@ -471,28 +471,28 @@ static void genesis(void * _Nonnull self) {
     nn->example_idx = 0;
     nn->number_of_features = 0;
     nn->number_of_layers = nn->parameters->numberOfLayers;
-    nn->max_number_of_nodes_in_layer = max_array(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->max_number_of_nodes_in_layer = max_array(nn->parameters->topology, nn->parameters->numberOfLayers);
     
     nn->data = (data *)malloc(sizeof(data));
     nn->data->init = initNeuralData;
     nn->data->load = loadData;
     
     for (int l=0; l<nn->parameters->numberOfLayers-1; l++) {
-        nn->weightsDimensions[l].m = nn->parameters->ntLayers[l+1];
-        nn->weightsDimensions[l].n = nn->parameters->ntLayers[l];
+        nn->weightsDimensions[l].m = nn->parameters->topology[l+1];
+        nn->weightsDimensions[l].n = nn->parameters->topology[l];
     }
     for (int l=1; l<nn->parameters->numberOfLayers; l++) {
-        nn->biasesDimensions[l-1].n = nn->parameters->ntLayers[l];
+        nn->biasesDimensions[l-1].n = nn->parameters->topology[l];
     }
     
-    nn->weights = initWeights(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
-    nn->biases = initBiases(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
-    nn->activationsList = initActivationsList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
-    nn->zsList = initZsList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
-    nn->dcdwsList = initDcdwList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
-    nn->dcdbsList = initDcdbList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
-    nn->delta_dcdwsList = initDcdwList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
-    nn->delta_dcdbsList = initDcdbList(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+    nn->weights = initWeights(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->biases = initBiases(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->activationsList = initActivationsList(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->zsList = initZsList(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->dcdwsList = initDcdwList(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->dcdbsList = initDcdbList(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->delta_dcdwsList = initDcdwList(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->delta_dcdbsList = initDcdbList(nn->parameters->topology, nn->parameters->numberOfLayers);
 }
 
 //
@@ -624,7 +624,7 @@ static void gpu_alloc(void * _Nonnull self) {
 static void computeNeural(void * _Nonnull self, bool * _Nullable showTotalCost) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
-    nn->number_of_features = nn->parameters->ntLayers[0];
+    nn->number_of_features = nn->parameters->topology[0];
     
     // Stochastic gradient descent
     float **miniBatch = floatmatrix(0, nn->parameters->miniBatchSize-1, 0, nn->data->training->n-1);

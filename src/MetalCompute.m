@@ -118,7 +118,7 @@ void allocate_buffers(void * _Nonnull network) {
             biasesTableSize = biasesTableSize + nn->biasesDimensions[l].n;
         }
         
-        int max = max_array(nn->parameters->ntLayers, nn->parameters->numberOfLayers);
+        int max = max_array(nn->parameters->topology, nn->parameters->numberOfLayers);
         unsigned int activationsTableSize = max * nn->data->test->m;
         
         kernel_data = [device newBufferWithLength:entriesTableSize*sizeof(float) options:MTLResourceStorageModeShared];
@@ -129,8 +129,8 @@ void allocate_buffers(void * _Nonnull network) {
         
         params->gridDimension = nn->data->test->m;
         params->numberOfLayers = nn->parameters->numberOfLayers;
-        params->numberOfFeatures = nn->parameters->ntLayers[0];
-        params->numberOfOutputs = nn->parameters->ntLayers[nn->parameters->numberOfLayers-1];
+        params->numberOfFeatures = nn->parameters->topology[0];
+        params->numberOfOutputs = nn->parameters->topology[nn->parameters->numberOfLayers-1];
         memcpy(params->weightsDim, nn->weightsDimensions, sizeof(nn->weightsDimensions));
         memcpy(params->biasesDim, nn->biasesDimensions, sizeof(nn->biasesDimensions));
         kernel_parameters = [device newBufferWithBytes:params length:sizeof(parameters_container) options:MTLResourceStorageModeShared];
