@@ -17,7 +17,7 @@ LFLAGS = -framework Accelerate -framework OpenCL -framework Metal -framework Fou
 
 LIBS = -lm
 
-SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c LoadMNISTDataSet.c Memory.c Utils.c TimeProfile.c OpenCLUtils.c MetalCompute.m
+SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c LoadMNISTDataSet.c Parsing.c Memory.c Utils.c TimeProfile.c OpenCLUtils.c MetalCompute.m
 
 # define the C object files
 #
@@ -35,18 +35,18 @@ MAIN = FeedforwardNT
 .PHONY: depend clean
 
 all:    $(MAIN)
-    @echo Program compiled
+	@echo Program compiled
 
 $(MAIN): $(OBJS)
-    $(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
 
 .c.o:
-    $(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
-    $(RM) *.o *~ $(MAIN)
+	$(RM) *.o *~ $(MAIN)
 
 depend: $(SRCS)
-    makedepend $(INCLUDES) $^
+	makedepend $(INCLUDES) $^
 
 # DO NOT DELETE THIS LINE -- make depend needs it
