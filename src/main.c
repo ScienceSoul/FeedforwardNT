@@ -80,10 +80,7 @@ int main(int argc, const char * argv[]) {
     }
     
     if (err) fatal(PROGRAM_NAME, "problem in argument list. Possibly unrecognized argument.");
-    
-    //memset(dataSetName, 0, sizeof(dataSetName));
-    //memset(trainFile, 0, sizeof(trainFile));
-    
+        
     // Instantiate a neural network and load its parameters...
     fprintf(stdout, "%s: load the network and its input parameters:\n", PROGRAM_NAME);
     NeuralNetwork *neural = newNeuralNetwork();

@@ -179,7 +179,7 @@ static float * _Nonnull * _Nonnull createTrainigData(float * _Nonnull * _Nonnull
             trainingData[i][j] = dataSet[i][j];
         }
         
-        // Binarization of t    he input ground-truth to get a one-hot-vector
+        // Binarization of the input ground-truth to get a one-hot-vector
         for (int k=0; k<numberOfClassifications; k++) {
             if (dataSet[i][ntLayers[0]] == (float)classifications[k]) {
                 trainingData[i][ntLayers[0]+k] = 1.0f;
