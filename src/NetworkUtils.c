@@ -91,6 +91,10 @@ float * _Nonnull initBiases(int * _Nonnull ntLayers, unsigned int numberOfLayers
     return biases;
 }
 
+//
+//  Create the network activations
+//  Return a pointer to the head of the linked list
+//
 void * _Nonnull initNetworkActivations(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
     
     activationNode *activationsList = (activationNode *)allocateActivationNode();
@@ -122,6 +126,10 @@ void * _Nonnull initNetworkActivations(int * _Nonnull ntLayers, unsigned int num
     return (void *)activationsList;
 }
 
+//
+//  Create the network affine transformations
+//  Return a pointer to the head of the linked list
+//
 void * _Nonnull initNetworkAffineTransformations(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
     
     affineTransformationNode *zsList = (affineTransformationNode *)allocateAffineTransformationNode();
@@ -153,6 +161,10 @@ void * _Nonnull initNetworkAffineTransformations(int * _Nonnull ntLayers, unsign
     return (void *)zsList;
 }
 
+//
+//  Create the network derivatives of the cost function with respect to the weights
+//  Return a pointer to the head of the linked list
+//
 void * _Nonnull initNetworkCostWeightDerivatives(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
     
     costWeightDerivativeNode *dcdwList = (costWeightDerivativeNode *)allocateCostWeightDerivativeNode();
@@ -180,6 +192,10 @@ void * _Nonnull initNetworkCostWeightDerivatives(int * _Nonnull ntLayers, unsign
     return (void *)dcdwList;
 }
 
+//
+//  Create the network derivatives of the cost function with respect to the biases
+//  Return a pointer to the head of the linked list
+//
 void * _Nonnull initNetworkCostBiaseDerivatives(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
     
     costBiaseDerivativeNode *dcdbList = (costBiaseDerivativeNode *)allocateCostBiaseDerivativeNode();
