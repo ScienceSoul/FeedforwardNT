@@ -9,6 +9,9 @@
        topology:[784,30,10]
   }
   define {
+       activations:[sigmoid~]
+  }
+  define {
        split:[50000,10000]
   }
   define {

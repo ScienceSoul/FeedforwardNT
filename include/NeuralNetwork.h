@@ -13,7 +13,7 @@
 #include "TimeProfile.h"
 #include "MetalCompute.h"
 
-#endif /* NeuralNetwork_h */
+#define MAX_NUMBER_NETWORK_LAYERS 100
 
 typedef struct weightMatrixDimension {
     unsigned int m, n;
@@ -75,13 +75,15 @@ typedef struct data {
 } data;
 
 typedef struct parameters {
-    char supported_parameters[9][256];
-    char data[256], dataName[256];
     unsigned int number_of_suported_parameters;
     int epochs, miniBatchSize;
-    unsigned int numberOfLayers, numberOfClassifications;
-    int topology[100], split[2], classifications[100];
+    unsigned int numberOfLayers, numberOfClassifications, numberOfActivationFunctions;
     float eta, lambda;
+    
+    char supported_parameters[10][256];
+    char data[256], dataName[256];
+    int topology[MAX_NUMBER_NETWORK_LAYERS], split[2], classifications[MAX_NUMBER_NETWORK_LAYERS];
+    char activationFunctions[MAX_NUMBER_NETWORK_LAYERS][128];
 } parameters;
 
 typedef struct NeuralNetwork {
@@ -99,8 +101,8 @@ typedef struct NeuralNetwork {
     
     float * _Nullable weights;
     float * _Nullable biases;
-    weightMatrixDimension weightsDimensions[100];
-    biasVectorDimension biasesDimensions[100];
+    weightMatrixDimension weightsDimensions[MAX_NUMBER_NETWORK_LAYERS];
+    biasVectorDimension biasesDimensions[MAX_NUMBER_NETWORK_LAYERS];
     
     activationNode * _Nullable activationsList;
     zNode * _Nullable zsList;
@@ -110,7 +112,7 @@ typedef struct NeuralNetwork {
     dcdbNode * _Nullable delta_dcdbsList;
     
     MetalCompute * _Nullable gpu;
-        
+    
     void (* _Nullable genesis)(void * _Nonnull self);
     void (* _Nullable finale)(void * _Nonnull self);
     void (* _Nullable gpu_alloc)(void * _Nonnull self);
@@ -121,8 +123,13 @@ typedef struct NeuralNetwork {
     void (* _Nullable batchAccumulation)(void * _Nonnull self);
     void * _Nullable (* _Nullable backpropagation)(void * _Nonnull self);
     void (* _Nonnull feedforward)(void * _Nonnull self);
+    float (* _Nonnull activationFunctions[MAX_NUMBER_NETWORK_LAYERS])(float z, float * _Nullable vec, unsigned int * _Nullable n);
+    float (* _Nonnull activationDerivatives[MAX_NUMBER_NETWORK_LAYERS])(float z);
     int (* _Nullable evaluate)(void * _Nonnull self);
     float (* _Nullable totalCost)(void * _Nonnull self, float * _Nonnull * _Nonnull data, unsigned int m, bool convert);
 } NeuralNetwork;
 
 NeuralNetwork * _Nonnull newNeuralNetwork(void);
+
+#endif /* NeuralNetwork_h */
+

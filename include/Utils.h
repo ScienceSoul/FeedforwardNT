@@ -33,7 +33,11 @@ void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_No
 void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_Nonnull], double n);
 
 void shuffle(float * _Nonnull * _Nonnull array, unsigned int len1, unsigned int len2);
-void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int  * _Nonnull result, unsigned int * _Nonnull numberOfItems);
+
+void __attribute__((overloadable))parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int  * _Nonnull result, unsigned int * _Nonnull numberOfItems);
+void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, char result[_Nonnull][128], unsigned int * _Nonnull numberOfItems);
+
+
 float randn(float mu, float sigma);
 
 int __attribute__((overloadable)) min_array(int * _Nonnull a, unsigned int num_elements);
@@ -45,8 +49,16 @@ float __attribute__((overloadable)) max_array(float * _Nonnull a, unsigned int n
 int __attribute__((overloadable)) argmax(int * _Nonnull a, unsigned int num_elements);
 int __attribute__((overloadable)) argmax(float * _Nonnull a, unsigned int num_elements);
 
-float sigmoid(float z);
+float sigmoid(float z, float * _Nullable vec, unsigned int * _Nullable n);
 float sigmoidPrime(float z);
+
+float tan_h(float z, float * _Nullable vec, unsigned int * _Nullable n);
+float tanhPrime(float z);
+
+float relu(float z, float * _Nullable vec, unsigned int * _Nullable n);
+float reluPrime(float z);
+
+float softmax(float z, float * _Nullable vec, unsigned int * _Nullable n);
 
 float crossEntropyCost(float * _Nonnull a, float * _Nonnull y, unsigned int n);
 

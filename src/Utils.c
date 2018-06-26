@@ -106,7 +106,7 @@ void shuffle(float * _Nonnull * _Nonnull array, unsigned int len1, unsigned int 
     }
 }
 
-void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int  * _Nonnull result, unsigned int * _Nonnull numberOfItems) {
+void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int  * _Nonnull result, unsigned int * _Nonnull numberOfItems) {
     int idx = 0;
     *numberOfItems = 0;
     
@@ -119,13 +119,11 @@ void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumen
         if (argument[idx] == '[') {
             if (argument[idx+1] == ',' || argument[idx+1] == '[') fatal(PROGRAM_NAME, "syntax error possibly <[,> or <[[> in key value");
             idx++;
-            continue;
         }
         if (argument[idx] == ',') {
             if (argument[idx+1] == ']' || argument[idx+1] == ',') fatal(PROGRAM_NAME, "syntax error possibly <,]> or <,,> in key value.");
             (*numberOfItems)++;
             idx++;
-            continue;
         } else {
             int digit = argument[idx] - '0';
             result[*numberOfItems] = result[*numberOfItems] * 10 + digit;
@@ -134,6 +132,53 @@ void parseArgument(const char * _Nonnull argument, const char * _Nonnull argumen
     }
     (*numberOfItems)++;
 }
+
+void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, char result[_Nonnull][128], unsigned int * _Nonnull numberOfItems) {
+    
+    int idx = 0;
+    int bf_idx = 0;
+    *numberOfItems = 0;
+    char buffer[128];
+    
+    
+    fprintf(stdout, "%s: parsing the key value %s: %s.\n", PROGRAM_NAME, argumentName, argument);
+    
+    size_t len = strlen(argument);
+    if (argument[0] != '[' || argument[len-1] != ']') fatal(PROGRAM_NAME, "syntax error in key value. Collections must use the [ ] syntax.");
+    
+    memset(buffer, 0, sizeof(buffer));
+    while (1) {
+        if (argument[idx] == '[') {
+            if (argument[idx+1] == ',' || argument[idx+1] == '[') fatal(PROGRAM_NAME, "syntax error possibly <[,> or <[[> in key value");
+            idx++;
+        }
+        if (argument[idx] == '~') {
+            if (strlen(buffer) > 128) fatal(PROGRAM_NAME, "buffer overflow when parsing the activations.");
+            memset(result[*numberOfItems], 0, sizeof(result[*numberOfItems]));
+            memcpy(result[*numberOfItems], buffer, strlen(buffer));
+            (*numberOfItems)++;
+            break;
+        } else if (argument[idx] == ',' || argument[idx] == ']') {
+            if (argument[idx] == ',') {
+                if (argument[idx+1] == ']' || argument[idx+1] == ',') fatal(PROGRAM_NAME, "syntax error possibly <,]> or <,,> in key value.");
+            }
+            
+            if (strlen(buffer) > 128) fatal(PROGRAM_NAME, "buffer overflow when parsing the activations.");
+            memset(result[*numberOfItems], 0, sizeof(result[*numberOfItems]));
+            memcpy(result[*numberOfItems], buffer, strlen(buffer));
+            (*numberOfItems)++;
+            if (argument[idx] == ']') break;
+            idx++;
+            memset(buffer, 0, sizeof(buffer));
+            bf_idx = 0;
+        } else {
+            buffer[bf_idx] = argument[idx];
+            bf_idx++;
+            idx++;
+        }
+    }
+}
+
 
 // Generate random numbers from Normal Distribution (Gauss Distribution) with mean mu and standard deviation sigma
 // using the Marsaglia and Bray method
@@ -242,13 +287,42 @@ int __attribute__((overloadable)) argmax(float * _Nonnull a, unsigned int num_el
 }
 
 //  The sigmoid fonction
-float sigmoid(float z) {
+float sigmoid(float z, float * _Nullable vec, unsigned int * _Nullable n) {
     return 1.0f / (1.0f + expf(-z));
 }
 
 // Derivative of the sigmoid function
 float sigmoidPrime(float z) {
-    return sigmoid(z) * (1.0f - sigmoid(z));
+    return sigmoid(z,NULL,NULL) * (1.0f - sigmoid(z,NULL,NULL));
+}
+
+// The tanh function
+float tan_h(float z, float * _Nullable vec, unsigned int * _Nullable n) {
+    return tanhf(z);
+}
+
+// Derivative of the tanh function
+float tanhPrime(float z) {
+    return 1.0f - powf(tanhf(z), 2.0f);
+}
+
+// The relu function
+float relu(float z, float * _Nullable vec, unsigned int * _Nullable n) {
+    return fmaxf(z, 0.0f);
+}
+
+// Derivative of the relu function
+float reluPrime(float z) {
+    return (z <= 0) ? 0.0f : 1.0f;
+}
+
+// The softmax function
+float softmax(float z, float * _Nullable vec, unsigned int * _Nullable n) {
+    float sum = 0;
+    for (unsigned int i=0; i<*n; i++) {
+        sum = sum + expf(vec[i]);
+    }
+    return expf(z) / sum;
 }
 
 //

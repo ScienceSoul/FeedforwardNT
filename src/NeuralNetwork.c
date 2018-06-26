@@ -92,6 +92,67 @@ static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) 
             } else if (strcmp(field->key, "topology") == 0) {
                 parseArgument(field->value, field->key, nn->parameters->topology, &nn->parameters->numberOfLayers);
                 
+            } else if (strcmp(field->key, "activations") == 0) {
+                
+                // Activation functions:
+                //      sigmoid ->  Logistic sigmoid
+                //      relu    ->  Rectified linear unit
+                //      tanh    ->  Hyperbolic tangent
+                //      softmax ->  Softmax unit
+                
+                parseArgument(field->value, field->key, nn->parameters->activationFunctions, &nn->parameters->numberOfActivationFunctions);
+                
+                
+                if (nn->parameters->numberOfActivationFunctions > 1 && nn->parameters->numberOfActivationFunctions < nn->parameters->numberOfLayers-1) {
+                    fatal(PROGRAM_NAME, "the number of activation functions in parameters is too low. Can't resolve how to use the provided activations. ");
+                }
+                
+                if (nn->parameters->numberOfActivationFunctions > nn->parameters->numberOfLayers-1) {
+                    fprintf(stdout, "%s: too many activation functions given to network. Will ignore the extra ones.\n", PROGRAM_NAME);
+                }
+                
+                if (nn->parameters->numberOfActivationFunctions == 1) {
+                    if (strcmp(nn->parameters->activationFunctions[0], "softmax") == 0) {
+                        fatal(PROGRAM_NAME, "the softmax function can only be used for the output units and can't be used for the entire network.");
+                    }
+                    for (int i=0; i<nn->parameters->numberOfLayers-1; i++) {
+                        if (strcmp(nn->parameters->activationFunctions[0], "sigmoid") == 0) {
+                            nn->activationFunctions[i] = sigmoid;
+                            nn->activationDerivatives[i] = sigmoidPrime;
+                        } else if (strcmp(nn->parameters->activationFunctions[0], "relu") == 0) {
+                            nn->activationFunctions[i] = relu;
+                            nn->activationDerivatives[i] = reluPrime;
+                        } else if (strcmp(nn->parameters->activationFunctions[0], "tanh") == 0) {
+                            nn->activationFunctions[i] = tan_h;
+                            nn->activationDerivatives[i] = tanhPrime;
+                        } else fatal(PROGRAM_NAME, "unsupported or unrecognized activation function.");
+                    }
+                } else {
+                     for (int i=0; i<nn->parameters->numberOfLayers-1; i++) {
+                         printf("%s\n", nn->parameters->activationFunctions[i]);
+                         if (strcmp(nn->parameters->activationFunctions[i], "sigmoid") == 0) {
+                             nn->activationFunctions[i] = sigmoid;
+                             nn->activationDerivatives[i] = sigmoidPrime;
+                         } else if (strcmp(nn->parameters->activationFunctions[i], "relu") == 0) {
+                             nn->activationFunctions[i] = relu;
+                             nn->activationDerivatives[i] = reluPrime;
+                         } else if (strcmp(nn->parameters->activationFunctions[i], "tanh") == 0) {
+                             nn->activationFunctions[i] = tan_h;
+                             nn->activationDerivatives[i] = tanhPrime;
+                         } else if (strcmp(nn->parameters->activationFunctions[i], "softmax") == 0) {
+                             // The sofmax function is only supported for the output units
+                             if (i < nn->parameters->numberOfLayers-2) {
+                                 fatal(PROGRAM_NAME, "the softmax function can't be used for the hiden units, only for the output units.");
+                             }
+                             nn->activationFunctions[i] = softmax;
+                             nn->activationDerivatives[i] = NULL;
+                         }
+                         else {
+                             fatal(PROGRAM_NAME, "unsupported or unrecognized activation function.");
+                         }
+                     }
+                }
+                
             } else if (strcmp(field->key, "split") == 0) {
                 unsigned int n;
                 parseArgument(field->value,  field->key, nn->parameters->split, &n);
@@ -432,13 +493,14 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     strcpy(nn->parameters->supported_parameters[0], "data_name");
     strcpy(nn->parameters->supported_parameters[1], "data");
     strcpy(nn->parameters->supported_parameters[2], "topology");
-    strcpy(nn->parameters->supported_parameters[3], "split");
-    strcpy(nn->parameters->supported_parameters[4], "classification");
-    strcpy(nn->parameters->supported_parameters[5], "epochs");
-    strcpy(nn->parameters->supported_parameters[6], "batch_size");
-    strcpy(nn->parameters->supported_parameters[7], "eta");
-    strcpy(nn->parameters->supported_parameters[8], "lambda");
-    nn->parameters->number_of_suported_parameters = 9;
+    strcpy(nn->parameters->supported_parameters[3], "activations");
+    strcpy(nn->parameters->supported_parameters[4], "split");
+    strcpy(nn->parameters->supported_parameters[5], "classification");
+    strcpy(nn->parameters->supported_parameters[6], "epochs");
+    strcpy(nn->parameters->supported_parameters[7], "batch_size");
+    strcpy(nn->parameters->supported_parameters[8], "eta");
+    strcpy(nn->parameters->supported_parameters[9], "lambda");
+    nn->parameters->number_of_suported_parameters = 10;
     
     bzero(nn->parameters->data, 256);
     bzero(nn->parameters->dataName, 256);
@@ -870,13 +932,13 @@ static void * _Nullable backpropagation(void * _Nonnull self) {
     dcdwNode *dcdwNodePt = dcdwTail->previous;
     dcdbNode *dcdbNodePt = dcdbTail->previous;
     
-    unsigned int l = nn->parameters->numberOfLayers-2;
+    unsigned int l = nn->parameters->numberOfLayers - 2;
     while (dcdwNodePt != NULL && dcdbNodePt != NULL) {
         aNodePt = aNodePt->previous;
         
         float sp[zNodePt->n];
         for (int i=0; i<zNodePt->n; i++) {
-            sp[i] = sigmoidPrime(zNodePt->z[i]);
+            sp[i] = nn->activationDerivatives[l-1](zNodePt->z[i]);
         }
         
         cblas_sgemv(CblasRowMajor, CblasTrans, (int)nn->weightsDimensions[l].m, (int)nn->weightsDimensions[l].n, 1.0, nn->weights+stride, (int)nn->weightsDimensions[l].n, delta, 1, 0.0, buffer, 1);
@@ -1066,8 +1128,14 @@ static void feedforward(void * _Nonnull self) {
             zNodePt->z[i] = buffer[i] + nn->biases[stride2+i];
         }
 #endif
+        float *vec = NULL;
+        unsigned int *vec_length = NULL;
+        if (strcmp(nn->parameters->activationFunctions[l], "softmax") == 0) {
+            vec = zNodePt->z;
+            vec_length = &zNodePt->n;
+        }
         for (int i=0; i<aNodePt->n; i++) {
-            aNodePt->a[i] = sigmoid(zNodePt->z[i]);
+            aNodePt->a[i] = nn->activationFunctions[l](zNodePt->z[i],vec, vec_length);
         }
         nanToNum(aNodePt->a, aNodePt->n);
         
