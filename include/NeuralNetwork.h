@@ -8,10 +8,8 @@
 #ifndef NeuralNetwork_h
 #define NeuralNetwork_h
 
-#include <stdio.h>
-#include "Utils.h"
-#include "TimeProfile.h"
 #include "MetalCompute.h"
+#include "Utils.h"
 
 #define MAX_NUMBER_NETWORK_LAYERS 100
 

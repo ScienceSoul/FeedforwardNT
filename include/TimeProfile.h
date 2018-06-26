@@ -8,11 +8,8 @@
 #ifndef TimeProfile_h
 #define TimeProfile_h
 
-#include <stdio.h>
-#include <time.h>
-
-#endif /* TimeProfile_h */
-
 double cputime(void);
 double realtime(void);
 double cpumemory(void);
+
+#endif /* TimeProfile_h */

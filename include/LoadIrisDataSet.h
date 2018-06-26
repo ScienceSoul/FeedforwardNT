@@ -8,9 +8,7 @@
 #ifndef LoadIrisDataSet_h
 #define LoadIrisDataSet_h
 
-#include <stdio.h>
-
-#endif /* LoadIrisDataSet_h */
-
 float * _Nonnull * _Nonnull loadIris(const char * _Nonnull file, unsigned int * _Nonnull len1, unsigned int * _Nonnull len2);
 float * _Nullable * _Nullable readFile(const char * _Nonnull file, unsigned int * _Nonnull len);
+
+#endif /* LoadIrisDataSet_h */

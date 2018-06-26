@@ -5,8 +5,9 @@
 //  Created by Seddik hakime on 21/05/2017.
 //
 
-#include "Memory.h"
 #include "LoadIrisDataSet.h"
+#include "Utils.h"
+#include "Memory.h"
 
 float * _Nullable * _Nullable readFile(const char * _Nonnull file, unsigned int * _Nonnull len) {
     

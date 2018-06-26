@@ -5,7 +5,11 @@
 //  Created by Seddik hakime on 21/05/2017.
 //
 
+#include <stddef.h>
+#include <stdarg.h>
+
 #include "Memory.h"
+#include "Utils.h"
 
 #define FI_END 1
 #define FREE_ARG void*

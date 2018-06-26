@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include "OpenCLUtils.h"
 #include "Memory.h"
+#include "Utils.h"
 
 cl_platform_id _Nullable * _Nullable find_platforms(cl_uint * _Nullable numberofPlatforms, cl_uint * _Nullable numberOfDevices) {
     

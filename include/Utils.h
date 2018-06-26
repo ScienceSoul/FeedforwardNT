@@ -15,10 +15,6 @@
 #include <stdbool.h>
 #include <limits.h>
 
-#include "Memory.h"
-
-#endif /* Utils_h */
-
 #define PROGRAM_NAME "FeedforwardNT"
 
 void __attribute__((overloadable)) fatal(char head[_Nonnull]);
@@ -68,3 +64,5 @@ float __attribute__((overloadable)) frobeniusNorm(float * _Nonnull mat, unsigned
 void  __attribute__((overloadable)) nanToNum(float * _Nonnull array, unsigned int n);
 
 int nearestPower2(int num);
+
+#endif /* Utils_h */
