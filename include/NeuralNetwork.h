@@ -28,26 +28,26 @@ typedef struct activationNode {
     struct activationNode * _Nullable previous;
 } activationNode;
 
-typedef struct zNode {
+typedef struct affineTransformationNode {
     unsigned int n;
     float * _Nullable z;
-    struct zNode * _Nullable next;
-    struct zNode * _Nullable previous;
-} zNode;
+    struct affineTransformationNode * _Nullable next;
+    struct affineTransformationNode * _Nullable previous;
+} affineTransformationNode;
 
-typedef struct dcdwNode {
+typedef struct costWeightDerivativeNode {
     unsigned int m, n;
     float * _Nullable * _Nullable dcdw;
-    struct dcdwNode * _Nullable next;
-    struct dcdwNode * _Nullable previous;
-} dcdwNode;
+    struct costWeightDerivativeNode * _Nullable next;
+    struct costWeightDerivativeNode * _Nullable previous;
+} costWeightDerivativeNode;
 
-typedef struct dcdbNode {
+typedef struct costBiaseDerivativeNode {
     unsigned int n;
     float * _Nullable dcdb;
-    struct dcdbNode * _Nullable next;
-    struct dcdbNode * _Nullable previous;
-} dcdbNode;
+    struct costBiaseDerivativeNode * _Nullable next;
+    struct costBiaseDerivativeNode * _Nullable previous;
+} costBiaseDerivativeNode;
 
 typedef struct training {
     float * _Nullable *_Nullable set;
@@ -102,12 +102,12 @@ typedef struct NeuralNetwork {
     weightMatrixDimension weightsDimensions[MAX_NUMBER_NETWORK_LAYERS];
     biasVectorDimension biasesDimensions[MAX_NUMBER_NETWORK_LAYERS];
     
-    activationNode * _Nullable activationsList;
-    zNode * _Nullable zsList;
-    dcdwNode * _Nullable dcdwsList;
-    dcdbNode * _Nullable dcdbsList;
-    dcdwNode * _Nullable delta_dcdwsList;
-    dcdbNode * _Nullable delta_dcdbsList;
+    activationNode * _Nullable networkActivations;
+    affineTransformationNode * _Nullable networkAffineTransformations;
+    costWeightDerivativeNode * _Nullable networkCostWeightDerivatives;
+    costBiaseDerivativeNode * _Nullable networkCostBiaseDerivatives;
+    costWeightDerivativeNode * _Nullable deltaNetworkCostWeightDerivatives;
+    costBiaseDerivativeNode * _Nullable deltaNetworkCostBiaseDerivatives;
     
     MetalCompute * _Nullable gpu;
     

@@ -10,18 +10,18 @@
 #define NetworkUtils_h
 
 void * _Nonnull allocateActivationNode(void);
-void * _Nonnull allocateZNode(void);
-void * _Nonnull allocateDcdwNode(void);
-void * _Nonnull allocateDcdbNode(void);
+void * _Nonnull allocateAffineTransformationNode(void);
+void * _Nonnull allocateCostWeightDerivativeNode(void);
+void * _Nonnull allocateCostBiaseDerivativeNode(void);
 
 float * _Nonnull initWeights(int * _Nonnull ntLayers, unsigned int numberOfLayers);
 float * _Nonnull initBiases(int * _Nonnull ntLayers, unsigned int numberOfLayers);
 
-void * _Nonnull initActivationsList(int * _Nonnull ntLayers, unsigned int numberOfLayers);
-void * _Nonnull initZsList(int * _Nonnull ntLayers, unsigned int numberOfLayers);
+void * _Nonnull initNetworkActivations(int * _Nonnull ntLayers, unsigned int numberOfLayers);
+void * _Nonnull initNetworkAffineTransformations(int * _Nonnull ntLayers, unsigned int numberOfLayers);
 
-void * _Nonnull initDcdwList(int * _Nonnull ntLayers, unsigned int numberOfLayers);
-void * _Nonnull initDcdbList(int * _Nonnull ntLayers, unsigned int numberOfLayers);
+void * _Nonnull initNetworkCostWeightDerivatives(int * _Nonnull ntLayers, unsigned int numberOfLayers);
+void * _Nonnull initNetworkCostBiaseDerivatives(int * _Nonnull ntLayers, unsigned int numberOfLayers);
 
 int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile);
 

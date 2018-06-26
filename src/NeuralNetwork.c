@@ -68,8 +68,8 @@ static void initNeuralData(void * _Nonnull self) {
 NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     
     NeuralNetwork *nn = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
-    *nn = (NeuralNetwork){.weights=NULL, .biases=NULL, .activationsList=NULL, .zsList=NULL,
-                          .dcdwsList=NULL, .dcdbsList=NULL, .delta_dcdwsList=NULL, .delta_dcdbsList=NULL, .gpu=NULL};
+    *nn = (NeuralNetwork){.weights=NULL, .biases=NULL, .networkActivations=NULL, .networkAffineTransformations=NULL,
+                          .networkCostWeightDerivatives=NULL, .networkCostBiaseDerivatives=NULL, .deltaNetworkCostWeightDerivatives=NULL, .deltaNetworkCostBiaseDerivatives=NULL, .gpu=NULL};
     
     nn->parameters = (parameters *)malloc(sizeof(parameters));
     strcpy(nn->parameters->supported_parameters[0], "data_name");
@@ -137,12 +137,12 @@ static void genesis(void * _Nonnull self) {
     
     nn->weights = initWeights(nn->parameters->topology, nn->parameters->numberOfLayers);
     nn->biases = initBiases(nn->parameters->topology, nn->parameters->numberOfLayers);
-    nn->activationsList = (activationNode *)initActivationsList(nn->parameters->topology, nn->parameters->numberOfLayers);
-    nn->zsList = (zNode *)initZsList(nn->parameters->topology, nn->parameters->numberOfLayers);
-    nn->dcdwsList = (dcdwNode *)initDcdwList(nn->parameters->topology, nn->parameters->numberOfLayers);
-    nn->dcdbsList = (dcdbNode *)initDcdbList(nn->parameters->topology, nn->parameters->numberOfLayers);
-    nn->delta_dcdwsList = (dcdwNode *)initDcdwList(nn->parameters->topology, nn->parameters->numberOfLayers);
-    nn->delta_dcdbsList = (dcdbNode *)initDcdbList(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->networkActivations = (activationNode *)initNetworkActivations(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->networkAffineTransformations = (affineTransformationNode *)initNetworkAffineTransformations(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->networkCostWeightDerivatives = (costWeightDerivativeNode *)initNetworkCostWeightDerivatives(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->networkCostBiaseDerivatives = (costBiaseDerivativeNode *)initNetworkCostBiaseDerivatives(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->deltaNetworkCostWeightDerivatives = (costWeightDerivativeNode *)initNetworkCostWeightDerivatives(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->deltaNetworkCostBiaseDerivatives = (costBiaseDerivativeNode *)initNetworkCostBiaseDerivatives(nn->parameters->topology, nn->parameters->numberOfLayers);
 }
 
 //
@@ -168,11 +168,11 @@ static void finale(void * _Nonnull self) {
     free(nn->weights);
     free(nn->biases);
     
-    dcdwNode *dcdwTail = nn->dcdwsList;
+    costWeightDerivativeNode *dcdwTail = nn->networkCostWeightDerivatives;
     while (dcdwTail != NULL && dcdwTail->next ) {
         dcdwTail = dcdwTail->next;
     }
-    dcdwNode *dcdwNodePt = NULL;
+    costWeightDerivativeNode *dcdwNodePt = NULL;
     while (dcdwTail != NULL) {
         dcdwNodePt = dcdwTail->previous;
         free_fmatrix(dcdwTail->dcdw, 0, dcdwTail->m-1, 0, dcdwTail->n-1);
@@ -183,11 +183,11 @@ static void finale(void * _Nonnull self) {
         dcdwTail = dcdwNodePt;
     }
     
-    dcdwNode *delta_dcdwTail = nn->delta_dcdwsList;
+    costWeightDerivativeNode *delta_dcdwTail = nn->deltaNetworkCostWeightDerivatives;
     while (delta_dcdwTail != NULL && delta_dcdwTail->next ) {
         delta_dcdwTail = delta_dcdwTail->next;
     }
-    dcdwNode *delta_dcdwNodePt = NULL;
+    costWeightDerivativeNode *delta_dcdwNodePt = NULL;
     while (delta_dcdwTail != NULL) {
         delta_dcdwNodePt = delta_dcdwTail->previous;
         free_fmatrix(delta_dcdwTail->dcdw, 0, delta_dcdwTail->m-1, 0, delta_dcdwTail->n-1);
@@ -198,11 +198,11 @@ static void finale(void * _Nonnull self) {
         delta_dcdwTail = delta_dcdwNodePt;
     }
     
-    dcdbNode *dcdbTail = nn->dcdbsList;
+    costBiaseDerivativeNode *dcdbTail = nn->networkCostBiaseDerivatives;
     while (dcdbTail != NULL && dcdbTail->next != NULL) {
         dcdbTail = dcdbTail->next;
     }
-    dcdbNode *dcdbNodePt = NULL;
+    costBiaseDerivativeNode *dcdbNodePt = NULL;
     while (dcdbTail != NULL) {
         dcdbNodePt = dcdbTail->previous;
         free_fvector(dcdbTail->dcdb, 0, dcdbTail->n);
@@ -213,11 +213,11 @@ static void finale(void * _Nonnull self) {
         dcdbTail = dcdbNodePt;
     }
     
-    dcdbNode *delta_dcdbTail = nn->delta_dcdbsList;
+    costBiaseDerivativeNode *delta_dcdbTail = nn->deltaNetworkCostBiaseDerivatives;
     while (delta_dcdbTail != NULL && delta_dcdbTail->next != NULL) {
         delta_dcdbTail = delta_dcdbTail->next;
     }
-    dcdbNode *delta_dcdbNodePt = NULL;
+    costBiaseDerivativeNode *delta_dcdbNodePt = NULL;
     while (delta_dcdbTail != NULL) {
         delta_dcdbNodePt = delta_dcdbTail->previous;
         free_fvector(delta_dcdbTail->dcdb, 0, delta_dcdbTail->n);
@@ -228,7 +228,7 @@ static void finale(void * _Nonnull self) {
         delta_dcdbTail = delta_dcdbNodePt;
     }
     
-    activationNode *aTail = nn->activationsList;
+    activationNode *aTail = nn->networkActivations;
     while (aTail != NULL && aTail->next != NULL) {
         aTail = aTail->next;
     }
@@ -243,11 +243,11 @@ static void finale(void * _Nonnull self) {
         aTail = aNodePt;
     }
     
-    zNode *zTail = nn->zsList;
+    affineTransformationNode *zTail = nn->networkAffineTransformations;
     while (zTail != NULL && zTail->next != NULL) {
         zTail = zTail->next;
     }
-    zNode *zNodePt = NULL;
+    affineTransformationNode *zNodePt = NULL;
     while (zTail != NULL) {
         zNodePt = zTail->previous;
         free_fvector(zTail->z, 0, zTail->n);
@@ -340,25 +340,25 @@ static void miniBatch(void * _Nonnull self, float * _Nonnull * _Nonnull miniBatc
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
-    dcdwNode *dcdwNodePt = nn->dcdwsList;
+    costWeightDerivativeNode *dcdwNodePt = nn->networkCostWeightDerivatives;
     while (dcdwNodePt != NULL) {
         memset(*dcdwNodePt->dcdw, 0.0f, (dcdwNodePt->m*dcdwNodePt->n)*sizeof(float));
         dcdwNodePt = dcdwNodePt->next;
     }
     
-    dcdbNode *dcdbNodePt = nn->dcdbsList;
+    costBiaseDerivativeNode *dcdbNodePt = nn->networkCostBiaseDerivatives;
     while (dcdbNodePt != NULL) {
         memset(dcdbNodePt->dcdb, 0.0f, dcdbNodePt->n*sizeof(float));
         dcdbNodePt = dcdbNodePt->next;
     }
     
-    dcdwNode *delta_dcdwNodePt = nn->delta_dcdwsList;
+    costWeightDerivativeNode *delta_dcdwNodePt = nn->deltaNetworkCostWeightDerivatives;
     while (delta_dcdwNodePt != NULL) {
         memset(*delta_dcdwNodePt->dcdw, 0.0f, (delta_dcdwNodePt->m*delta_dcdwNodePt->n)*sizeof(float));
         delta_dcdwNodePt = delta_dcdwNodePt->next;
     }
     
-    dcdbNode *delta_dcdbNodePt = nn->delta_dcdbsList;
+    costBiaseDerivativeNode *delta_dcdbNodePt = nn->deltaNetworkCostBiaseDerivatives;
     while (delta_dcdbNodePt != NULL) {
         memset(delta_dcdbNodePt->dcdb, 0.0f, delta_dcdbNodePt->n*sizeof(float));
         delta_dcdbNodePt = delta_dcdbNodePt->next;
@@ -384,10 +384,10 @@ static void batchAccumulation(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
-    dcdwNode *dcdwNodePt = nn->dcdwsList;
-    dcdbNode *dcdbNodePt = nn->dcdbsList;
-    dcdwNode *delta_dcdwNodePt = nn->delta_dcdwsList;
-    dcdbNode *delta_dcdbNodePt = nn->delta_dcdbsList;
+    costWeightDerivativeNode *dcdwNodePt = nn->networkCostWeightDerivatives;
+    costBiaseDerivativeNode *dcdbNodePt = nn->networkCostBiaseDerivatives;
+    costWeightDerivativeNode *delta_dcdwNodePt = nn->deltaNetworkCostWeightDerivatives;
+    costBiaseDerivativeNode *delta_dcdbNodePt = nn->deltaNetworkCostBiaseDerivatives;
     while (dcdwNodePt != NULL && delta_dcdwNodePt != NULL) {
         for (int i=0; i<dcdwNodePt->m; i++) {
             for (int j=0; j<dcdwNodePt->n; j++) {
@@ -411,7 +411,7 @@ static void updateWeightsBiases(void * _Nonnull self) {
     // Update weights
     unsigned int stride = 0;
     unsigned int l = 0;
-    dcdwNode *dcdwNodePt = nn->dcdwsList;
+    costWeightDerivativeNode *dcdwNodePt = nn->networkCostWeightDerivatives;
     while (dcdwNodePt != NULL) {
         unsigned int m = nn->weightsDimensions[l].m;
         unsigned int n = nn->weightsDimensions[l].n;
@@ -428,7 +428,7 @@ static void updateWeightsBiases(void * _Nonnull self) {
     // Update biases
     stride = 0;
     l = 0;
-    dcdbNode *dcdbNodePt = nn->dcdbsList;
+    costBiaseDerivativeNode *dcdbNodePt = nn->networkCostBiaseDerivatives;
     while (dcdbNodePt != NULL) {
         unsigned int n = nn->biasesDimensions[l].n;
         for (int i=0; i<n; i++) {
@@ -448,7 +448,7 @@ static void * _Nullable backpropagation(void * _Nonnull self) {
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
     // Activations at the input layer
-    activationNode *aNodePt = nn->activationsList;
+    activationNode *aNodePt = nn->networkActivations;
     for (int i=0; i<nn->number_of_features; i++) {
         aNodePt->a[i] = nn->batch[nn->example_idx][i];
     }
@@ -459,11 +459,11 @@ static void * _Nullable backpropagation(void * _Nonnull self) {
     // ------------- Backward pass
     // At last layer
     
-    activationNode *aTail = nn->activationsList;
+    activationNode *aTail = nn->networkActivations;
     while (aTail != NULL && aTail->next != NULL) {
         aTail = aTail->next;
     }
-    zNode *zTail = nn->zsList;
+    affineTransformationNode *zTail = nn->networkAffineTransformations;
     while (zTail != NULL && zTail->next != NULL) {
         zTail = zTail->next;
     }
@@ -481,11 +481,11 @@ static void * _Nullable backpropagation(void * _Nonnull self) {
     }
     
     //dc/dw and dc/db at last layer
-    dcdwNode *dcdwTail = nn->delta_dcdwsList;
+    costWeightDerivativeNode *dcdwTail = nn->deltaNetworkCostWeightDerivatives;
     while (dcdwTail != NULL && dcdwTail->next != NULL) {
         dcdwTail = dcdwTail->next;
     }
-    dcdbNode *dcdbTail = nn->delta_dcdbsList;
+    costBiaseDerivativeNode *dcdbTail = nn->deltaNetworkCostBiaseDerivatives;
     while (dcdbTail != NULL && dcdbTail->next != NULL) {
         dcdbTail = dcdbTail->next;
     }
@@ -510,9 +510,9 @@ static void * _Nullable backpropagation(void * _Nonnull self) {
         stride = stride + (m * n);
     }
     
-    zNode *zNodePt = zTail->previous;
-    dcdwNode *dcdwNodePt = dcdwTail->previous;
-    dcdbNode *dcdbNodePt = dcdbTail->previous;
+    affineTransformationNode *zNodePt = zTail->previous;
+    costWeightDerivativeNode *dcdwNodePt = dcdwTail->previous;
+    costBiaseDerivativeNode *dcdbNodePt = dcdbTail->previous;
     
     unsigned int l = nn->parameters->numberOfLayers - 2;
     while (dcdwNodePt != NULL && dcdbNodePt != NULL) {
@@ -559,14 +559,14 @@ static int eval(void * _Nonnull self) {
     int sum = 0;
     for (int k=0; k<nn->data->test->m; k++) {
         
-        aNodePt = nn->activationsList;
+        aNodePt = nn->networkActivations;
         for (int i=0; i<nn->number_of_features; i++) {
             aNodePt->a[i] = nn->data->test->set[k][i];
         }
 
         nn->feedforward(self);
         
-        aNodePt = nn->activationsList;
+        aNodePt = nn->networkActivations;
         while (aNodePt != NULL && aNodePt->next != NULL) {
             aNodePt = aNodePt->next;
         }
@@ -638,13 +638,13 @@ static float totalCost(void * _Nonnull self, float * _Nonnull * _Nonnull data, u
     float cost = 0.0f;
     for (int i=0; i<m; i++) {
 
-        aNodePt = nn->activationsList;
+        aNodePt = nn->networkActivations;
         for (int j=0; j<nn->number_of_features; j++) {
             aNodePt->a[j] = data[i][j];
         }
         
         nn->feedforward(self);
-        aNodePt = nn->activationsList;
+        aNodePt = nn->networkActivations;
         while (aNodePt != NULL && aNodePt->next != NULL) {
             aNodePt = aNodePt->next;
         }
@@ -688,8 +688,8 @@ static void feedforward(void * _Nonnull self) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
 
-    activationNode *aNodePt = nn->activationsList;
-    zNode *zNodePt = nn->zsList;
+    activationNode *aNodePt = nn->networkActivations;
+    affineTransformationNode *zNodePt = nn->networkAffineTransformations;
     
     unsigned int stride1 = 0;
     unsigned int stride2 = 0;

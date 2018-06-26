@@ -18,21 +18,21 @@ void * _Nonnull allocateActivationNode(void) {
     return (void *)list;
 }
 
-void * _Nonnull allocateZNode(void) {
-    zNode *list = (zNode *)malloc(sizeof(zNode));
-    *list = (zNode){.n=0, .z=NULL, .next=NULL, .previous=NULL};
+void * _Nonnull allocateAffineTransformationNode(void) {
+    affineTransformationNode *list = (affineTransformationNode *)malloc(sizeof(affineTransformationNode));
+    *list = (affineTransformationNode){.n=0, .z=NULL, .next=NULL, .previous=NULL};
     return (void *)list;
 }
 
-void * _Nonnull allocateDcdwNode(void) {
-    dcdwNode *list = (dcdwNode *)malloc(sizeof(dcdwNode));
-    *list = (dcdwNode){.m=0, .n=0, .dcdw=NULL, .next=NULL, .previous=NULL};
+void * _Nonnull allocateCostWeightDerivativeNode(void) {
+    costWeightDerivativeNode *list = (costWeightDerivativeNode *)malloc(sizeof(costWeightDerivativeNode));
+    *list = (costWeightDerivativeNode){.m=0, .n=0, .dcdw=NULL, .next=NULL, .previous=NULL};
     return (void *)list;
 }
 
-void * _Nonnull allocateDcdbNode(void) {
-    dcdbNode *list = (dcdbNode *)malloc(sizeof(dcdbNode));
-    *list = (dcdbNode){.n=0, .dcdb=NULL, .next=NULL, .previous=NULL};
+void * _Nonnull allocateCostBiaseDerivativeNode(void) {
+    costBiaseDerivativeNode *list = (costBiaseDerivativeNode *)malloc(sizeof(costBiaseDerivativeNode));
+    *list = (costBiaseDerivativeNode){.n=0, .dcdb=NULL, .next=NULL, .previous=NULL};
     return (void *)list;
 }
 
@@ -91,7 +91,7 @@ float * _Nonnull initBiases(int * _Nonnull ntLayers, unsigned int numberOfLayers
     return biases;
 }
 
-void * _Nonnull initActivationsList(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
+void * _Nonnull initNetworkActivations(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
     
     activationNode *activationsList = (activationNode *)allocateActivationNode();
     
@@ -122,9 +122,9 @@ void * _Nonnull initActivationsList(int * _Nonnull ntLayers, unsigned int number
     return (void *)activationsList;
 }
 
-void * _Nonnull initZsList(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
+void * _Nonnull initNetworkAffineTransformations(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
     
-    zNode *zsList = (zNode *)allocateZNode();
+    affineTransformationNode *zsList = (affineTransformationNode *)allocateAffineTransformationNode();
     
     // The first z node (i.e., layer)
     zsList->z = floatvec(0, ntLayers[0]-1);
@@ -132,9 +132,9 @@ void * _Nonnull initZsList(int * _Nonnull ntLayers, unsigned int numberOfLayers)
     // The rest of the z nodes (i.e., layers)
     int idx = 1;
     int k = 1;
-    zNode *zNodePt = zsList;
+    affineTransformationNode *zNodePt = zsList;
     while (k <= numberOfLayers-1) {
-        zNode *newNode = (zNode *)allocateZNode();
+        affineTransformationNode *newNode = (affineTransformationNode *)allocateAffineTransformationNode();
         newNode->z = floatvec(0, ntLayers[idx]-1);
         newNode->n = ntLayers[idx];
         newNode->previous = zNodePt;
@@ -153,9 +153,9 @@ void * _Nonnull initZsList(int * _Nonnull ntLayers, unsigned int numberOfLayers)
     return (void *)zsList;
 }
 
-void * _Nonnull initDcdwList(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
+void * _Nonnull initNetworkCostWeightDerivatives(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
     
-    dcdwNode *dcdwList = (dcdwNode *)allocateDcdwNode();
+    costWeightDerivativeNode *dcdwList = (costWeightDerivativeNode *)allocateCostWeightDerivativeNode();
     
     // The first weight node (i.e., layer)
     dcdwList->dcdw = floatmatrix(0, ntLayers[1]-1, 0, ntLayers[0]-1);
@@ -164,9 +164,9 @@ void * _Nonnull initDcdwList(int * _Nonnull ntLayers, unsigned int numberOfLayer
     // The rest of the weight nodes (i.e., layers)
     int idx = 1;
     int k = 1;
-    dcdwNode *dcdwNodePt = dcdwList;
+    costWeightDerivativeNode *dcdwNodePt = dcdwList;
     while (k < numberOfLayers-1) {
-        dcdwNode *newNode = (dcdwNode *)allocateDcdwNode();
+        costWeightDerivativeNode *newNode = (costWeightDerivativeNode *)allocateCostWeightDerivativeNode();
         newNode->dcdw = floatmatrix(0, ntLayers[idx+1]-1, 0, ntLayers[idx]-1);
         newNode->m = ntLayers[idx+1];
         newNode->n = ntLayers[idx];
@@ -180,9 +180,9 @@ void * _Nonnull initDcdwList(int * _Nonnull ntLayers, unsigned int numberOfLayer
     return (void *)dcdwList;
 }
 
-void * _Nonnull initDcdbList(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
+void * _Nonnull initNetworkCostBiaseDerivatives(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
     
-    dcdbNode *dcdbList = (dcdbNode *)allocateDcdbNode();
+    costBiaseDerivativeNode *dcdbList = (costBiaseDerivativeNode *)allocateCostBiaseDerivativeNode();
     
     // The first bias node (i.e., layer)
     dcdbList->dcdb = floatvec(0, ntLayers[1]-1);
@@ -190,9 +190,9 @@ void * _Nonnull initDcdbList(int * _Nonnull ntLayers, unsigned int numberOfLayer
     // The rest of the bias nodes (i.e., layers)
     int idx = 2;
     int k = 1;
-    dcdbNode *dcdbNodePt = dcdbList;
+    costBiaseDerivativeNode *dcdbNodePt = dcdbList;
     while (k < numberOfLayers-1) {
-        dcdbNode *newNode = (dcdbNode *)allocateDcdbNode();
+        costBiaseDerivativeNode *newNode = (costBiaseDerivativeNode *)allocateCostBiaseDerivativeNode();
         newNode->dcdb = floatvec(0, ntLayers[idx]-1);
         newNode->n = ntLayers[idx];
         newNode->previous = dcdbNodePt;
