@@ -92,7 +92,7 @@ float * _Nullable * _Nullable readBinaryFile(const char * _Nonnull file, unsigne
     int idx;
     for (int ex=0; ex<num; ex++) {
         idx = 0;
-        if (ex<10) printf("---\n");
+        if (ex<10) fprintf(stdout,"---\n");
         for (int i=0; i<row; i++) {
             for (int j=0; j<col; j++) {
                 unsigned char pixel;
@@ -103,19 +103,19 @@ float * _Nullable * _Nullable readBinaryFile(const char * _Nonnull file, unsigne
                     // Just show a few examples (here 10) from the dataset to check if we got the data properly
                     // Output in hexadecimal
                     int byte = (int)dataSet[ex][idx];
-                    printf("%02x", byte);
+                    fprintf(stdout,"%02x", byte);
                 }
                 // Normalize the intensity of each pixel from [0:255] to [0.0:1:0]
                 dataSet[ex][idx] = dataSet[ex][idx] * (1.0f/255.0f);
                 idx++;
             }
-            if (ex<10) printf("\n");
+            if (ex<10) fprintf(stdout,"\n");
         }
-        if (ex<10) printf("\n");
+        if (ex<10) fprintf(stdout,"\n");
         unsigned char label;
         fread(&label, 1, 1, flabel);
         dataSet[ex][idx] = (float)label;
-        if (ex<10) printf("label = %d\n", (int)dataSet[ex][idx]);
+        if (ex<10) fprintf(stdout,"label = %d\n", (int)dataSet[ex][idx]);
     }
     
     return dataSet;

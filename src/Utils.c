@@ -110,7 +110,7 @@ void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument,
     int idx = 0;
     *numberOfItems = 0;
     
-    fprintf(stdout, "%s: parsing the key value %s: %s.\n", PROGRAM_NAME, argumentName, argument);
+    fprintf(stdout, "%s: parsing the key value <%s>: %s.\n", PROGRAM_NAME, argumentName, argument);
     
     size_t len = strlen(argument);
     if (argument[0] != '[' || argument[len-1] != ']') fatal(PROGRAM_NAME, "syntax error in key value. Collections must use the [ ] syntax.");
@@ -141,7 +141,7 @@ void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument,
     char buffer[128];
     
     
-    fprintf(stdout, "%s: parsing the key value %s: %s.\n", PROGRAM_NAME, argumentName, argument);
+    fprintf(stdout, "%s: parsing the key value <%s>: %s.\n", PROGRAM_NAME, argumentName, argument);
     
     size_t len = strlen(argument);
     if (argument[0] != '[' || argument[len-1] != ']') fatal(PROGRAM_NAME, "syntax error in key value. Collections must use the [ ] syntax.");

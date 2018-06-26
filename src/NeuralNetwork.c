@@ -129,7 +129,6 @@ static int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) 
                     }
                 } else {
                      for (int i=0; i<nn->parameters->numberOfLayers-1; i++) {
-                         printf("%s\n", nn->parameters->activationFunctions[i]);
                          if (strcmp(nn->parameters->activationFunctions[i], "sigmoid") == 0) {
                              nn->activationFunctions[i] = sigmoid;
                              nn->activationDerivatives[i] = sigmoidPrime;
