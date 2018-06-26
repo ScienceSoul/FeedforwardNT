@@ -17,7 +17,7 @@ LFLAGS = -framework Accelerate -framework OpenCL -framework Metal -framework Fou
 
 LIBS = -lm
 
-SRCS = main.c NeuralNetwork.c LoadIrisDataSet.c LoadMNISTDataSet.c Parsing.c Memory.c Utils.c TimeProfile.c OpenCLUtils.c MetalCompute.m
+SRCS = main.c NeuralNetwork.c NetworkUtils.c Memory.c Parsing.c Data.c MetalCompute.m Utils.c TimeProfile.c OpenCLUtils.c LoadIrisDataSet.c LoadMNISTDataSet.c
 
 # define the C object files
 #
