@@ -93,6 +93,14 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     memset(nn->parameters->topology, 0, sizeof(nn->parameters->topology));
     memset(nn->parameters->classifications, 0, sizeof(nn->parameters->classifications));
     memset(nn->parameters->split, 0, sizeof(nn->parameters->split));
+    
+    memset(*nn->parameters->activationFunctions, 0, (MAX_NUMBER_NETWORK_LAYERS*128)*sizeof(char));
+    
+    for (int i=0; i<MAX_NUMBER_NETWORK_LAYERS; i++) {
+        nn->activationFunctions[i] = NULL;
+        nn->activationDerivatives[i] = NULL;
+    }
+    
     nn->load = loadParameters;
     
     nn->genesis = genesis;

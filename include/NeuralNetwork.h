@@ -11,8 +11,6 @@
 #include "MetalCompute.h"
 #include "Utils.h"
 
-#define MAX_NUMBER_NETWORK_LAYERS 100
-
 typedef struct weightMatrixDimension {
     unsigned int m, n;
 } weightMatrixDimension;
@@ -78,10 +76,10 @@ typedef struct parameters {
     unsigned int numberOfLayers, numberOfClassifications, numberOfActivationFunctions;
     float eta, lambda;
     
-    char supported_parameters[10][256];
-    char data[256], dataName[256];
+    char supported_parameters[10][MAX_SHORT_STRING_LENGTH];
+    char data[MAX_LONG_STRING_LENGTH], dataName[MAX_LONG_STRING_LENGTH];
     int topology[MAX_NUMBER_NETWORK_LAYERS], split[2], classifications[MAX_NUMBER_NETWORK_LAYERS];
-    char activationFunctions[MAX_NUMBER_NETWORK_LAYERS][128];
+    char activationFunctions[MAX_NUMBER_NETWORK_LAYERS][MAX_SHORT_STRING_LENGTH];
 } parameters;
 
 typedef struct NeuralNetwork {

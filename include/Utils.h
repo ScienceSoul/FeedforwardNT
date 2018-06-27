@@ -17,6 +17,10 @@
 
 #define PROGRAM_NAME "FeedforwardNT"
 
+#define MAX_NUMBER_NETWORK_LAYERS 100
+#define MAX_LONG_STRING_LENGTH 256
+#define MAX_SHORT_STRING_LENGTH 128
+
 void __attribute__((overloadable)) fatal(char head[_Nonnull]);
 void __attribute__((overloadable)) fatal(char head[_Nonnull], char message[_Nonnull]);
 void __attribute__((overloadable)) fatal(char head [_Nonnull], char message[_Nonnull], char string [_Nonnull]);

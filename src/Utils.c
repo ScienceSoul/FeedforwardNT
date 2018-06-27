@@ -114,23 +114,69 @@ void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument,
     
     size_t len = strlen(argument);
     if (argument[0] != '[' || argument[len-1] != ']') fatal(PROGRAM_NAME, "syntax error in key value. Collections must use the [ ] syntax.");
+    if ( argument[len-2] == ')') fatal(PROGRAM_NAME, "a range definition can't be used for the network output layer.");
     
-    while (argument[idx] != ']') {
+    unsigned int checkRange = 0;
+    while (1) {
         if (argument[idx] == '[') {
             if (argument[idx+1] == ',' || argument[idx+1] == '[') fatal(PROGRAM_NAME, "syntax error possibly <[,> or <[[> in key value");
+            if (argument[idx+1] == '(') fatal(PROGRAM_NAME, "a range definition can't be used for the network input layer");
             idx++;
         }
-        if (argument[idx] == ',') {
+        
+        if (argument[idx] == ']') {
+            (*numberOfItems)++;
+            break;
+        } else if (argument[idx] == '(') { // Begining of the definition of a range
+            int layerNumbering[2];
+            memset(layerNumbering, 0, sizeof(layerNumbering));
+            int count = 0;
+            idx++;
+            while (1) {
+                if (argument[idx] == '~') {
+                    idx++;
+                    count++;
+                } else if (argument[idx] == ';') { // The number of units this range of the network will have
+                    int numberOfUnits = 0;
+                    idx++;
+                    while (1) {
+                        if (argument[idx] == ')') {
+                            if (argument[idx+1] != ',') fatal(PROGRAM_NAME, "syntax error in range definition. <}> should be followed by <,>");
+                            if ((layerNumbering[0]-1) - checkRange != 1) fatal(PROGRAM_NAME, "range definition is not compatible with a correct topology of the network.");
+                            for (int i=layerNumbering[0]-1; i<layerNumbering[1]; i++) {
+                                result[*numberOfItems] = numberOfUnits;
+                                (*numberOfItems)++;
+                            }
+                            (*numberOfItems)--; // We are going one step ahead from the previous loop, so come back one step back
+                            checkRange = layerNumbering[1] - 1;
+                            break;
+                        } else {
+                            int digit = argument[idx] - '0';
+                            if (digit < 0 || digit > 9) fatal(PROGRAM_NAME, "NaN in key value.");
+                            numberOfUnits = numberOfUnits * 10 + digit;
+                            idx++;
+                        }
+                    }
+                    idx++;
+                    break;
+                } else {
+                    int digit = argument[idx] - '0';
+                    if (digit < 0 || digit > 9) fatal(PROGRAM_NAME, "NaN in key value.");
+                    layerNumbering[count] = layerNumbering[count] * 10 + digit;
+                    idx++;
+                }
+            }
+        } else if (argument[idx] == ',') {
             if (argument[idx+1] == ']' || argument[idx+1] == ',') fatal(PROGRAM_NAME, "syntax error possibly <,]> or <,,> in key value.");
             (*numberOfItems)++;
             idx++;
         } else {
             int digit = argument[idx] - '0';
+            if (digit < 0 || digit > 9) fatal(PROGRAM_NAME, "NaN in key value.");
             result[*numberOfItems] = result[*numberOfItems] * 10 + digit;
             idx++;
         }
     }
-    (*numberOfItems)++;
 }
 
 void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, char result[_Nonnull][128], unsigned int * _Nonnull numberOfItems) {
@@ -138,14 +184,16 @@ void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument,
     int idx = 0;
     int bf_idx = 0;
     *numberOfItems = 0;
-    char buffer[128];
+    char buffer[MAX_SHORT_STRING_LENGTH];
     
     
     fprintf(stdout, "%s: parsing the key value <%s>: %s.\n", PROGRAM_NAME, argumentName, argument);
     
     size_t len = strlen(argument);
     if (argument[0] != '[' || argument[len-1] != ']') fatal(PROGRAM_NAME, "syntax error in key value. Collections must use the [ ] syntax.");
+    if ( argument[len-2] == ')') fatal(PROGRAM_NAME, "a range definition can't be used to define the activation function at the network output layer.");
     
+    unsigned int checkRange = 0;
     memset(buffer, 0, sizeof(buffer));
     while (1) {
         if (argument[idx] == '[') {
@@ -153,17 +201,61 @@ void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument,
             idx++;
         }
         if (argument[idx] == '~') {
-            if (strlen(buffer) > 128) fatal(PROGRAM_NAME, "buffer overflow when parsing the activations.");
             memset(result[*numberOfItems], 0, sizeof(result[*numberOfItems]));
             memcpy(result[*numberOfItems], buffer, strlen(buffer));
             (*numberOfItems)++;
             break;
+        } else if (argument[idx] == '(') { // Begining of the definition of a range
+            int layerNumbering[2];
+            memset(buffer, 0, sizeof(buffer));
+            memset(layerNumbering, 0, sizeof(layerNumbering));
+            int count = 0;
+            bf_idx = 0;
+            idx++;
+            while (1) {
+                if (argument[idx] == '~') {
+                    idx++;
+                    count++;
+                } else if (argument[idx] == ';') { // The activatiuon functions this range of the network will use
+                    idx++;
+                    while (1) {
+                        if (argument[idx] == ')') {
+                            if (argument[idx+1] != ',') fatal(PROGRAM_NAME, "syntax error in range definition. <}> should be followed by <,>");
+                            if ((layerNumbering[0]-1) - checkRange != 1) fatal(PROGRAM_NAME, "range definition is not compatible with a correct topology of the network.");
+                            for (int i=layerNumbering[0]-1; i<layerNumbering[1]; i++) {
+                                memset(result[*numberOfItems], 0, sizeof(result[*numberOfItems]));
+                                memcpy(result[*numberOfItems], buffer, strlen(buffer));
+                                (*numberOfItems)++;
+                            }
+                            checkRange = layerNumbering[1] - 1;
+                            break;
+                        } else {
+                            if (bf_idx >= MAX_SHORT_STRING_LENGTH) fatal(PROGRAM_NAME, "buffer overflow when parsing the key:", (char *)argumentName);
+                            buffer[bf_idx] = argument[idx];
+                            bf_idx++;
+                            idx++;
+                        }
+                    }
+                    idx++;
+                    memset(buffer, 0, sizeof(buffer));
+                    bf_idx = 0;
+                    break;
+                } else {
+                    int digit = argument[idx] - '0';
+                    layerNumbering[count] = layerNumbering[count] * 10 + digit;
+                    idx++;
+                }
+            }
         } else if (argument[idx] == ',' || argument[idx] == ']') {
             if (argument[idx] == ',') {
                 if (argument[idx+1] == ']' || argument[idx+1] == ',') fatal(PROGRAM_NAME, "syntax error possibly <,]> or <,,> in key value.");
             }
             
-            if (strlen(buffer) > 128) fatal(PROGRAM_NAME, "buffer overflow when parsing the activations.");
+            if (argument[idx-1] == ')') { // We got here from a previous range definition so jump to next iteration
+                idx++;
+                continue;
+            }
+            
             memset(result[*numberOfItems], 0, sizeof(result[*numberOfItems]));
             memcpy(result[*numberOfItems], buffer, strlen(buffer));
             (*numberOfItems)++;
@@ -171,7 +263,9 @@ void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument,
             idx++;
             memset(buffer, 0, sizeof(buffer));
             bf_idx = 0;
+            checkRange++;
         } else {
+            if (bf_idx >= MAX_SHORT_STRING_LENGTH) fatal(PROGRAM_NAME, "buffer overflow when parsing the key:", (char *)argumentName);
             buffer[bf_idx] = argument[idx];
             bf_idx++;
             idx++;

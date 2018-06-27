@@ -287,7 +287,7 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                         } else if (strcmp(nn->parameters->activationFunctions[0], "tanh") == 0) {
                             nn->activationFunctions[i] = tan_h;
                             nn->activationDerivatives[i] = tanhPrime;
-                        } else fatal(PROGRAM_NAME, "unsupported or unrecognized activation function.");
+                        } else fatal(PROGRAM_NAME, "unsupported or unrecognized activation function:", nn->parameters->activationFunctions[0]);
                     }
                 } else {
                     for (int i=0; i<nn->parameters->numberOfLayers-1; i++) {
@@ -307,10 +307,7 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                             }
                             nn->activationFunctions[i] = softmax;
                             nn->activationDerivatives[i] = NULL;
-                        }
-                        else {
-                            fatal(PROGRAM_NAME, "unsupported or unrecognized activation function.");
-                        }
+                        } else fatal(PROGRAM_NAME, "unsupported or unrecognized activation function:", nn->parameters->activationFunctions[i]);
                     }
                 }
                 
