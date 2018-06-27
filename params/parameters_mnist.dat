@@ -1,12 +1,12 @@
 {
   define {
-      data_name:mnist
+      data name:mnist
   }
   define {
        data:/Users/hakimeseddik/Desktop/MNIST/train-images-idx3-ubyte
   }
   define {
-       topology:[784,30,10]
+       topology:[784,30,   10]
   }
   define {
        activations:[sigmoid~]
@@ -21,7 +21,7 @@
        epochs:30
   }
   define {
-       batch_size:10
+       batch size:10
   }
   define {
        eta:0.5

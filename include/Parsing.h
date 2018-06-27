@@ -10,14 +10,13 @@
 #define Parsing_h
 
 #include <stdbool.h>
-
-#define MAX_KEY_VALUE_STRING 1024
+#include "Utils.h"
 
 typedef struct dictionary {
     
     bool has_tag;
-    char key[MAX_KEY_VALUE_STRING];
-    char value[MAX_KEY_VALUE_STRING];
+    char key[MAX_LONG_STRING_LENGTH];
+    char value[MAX_LONG_STRING_LENGTH];
     char tag[1];
     struct dictionary * _Nullable next;
     struct dictionary * _Nullable previous;

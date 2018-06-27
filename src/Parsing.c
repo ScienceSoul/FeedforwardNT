@@ -11,7 +11,6 @@
 #include <string.h>
 #include "Parsing.h"
 #include "NeuralNetwork.h"
-#include "Utils.h"
 
 
 definition * _Nonnull allocateDefinitionNode(void) {
@@ -25,8 +24,8 @@ dictionary * _Nonnull allocateDictionaryNode(void) {
     
     dictionary *d = (dictionary *)malloc(sizeof(dictionary));
     *d = (dictionary){.has_tag=false, .next=NULL, .previous=NULL};
-    bzero(d->key, MAX_KEY_VALUE_STRING);
-    bzero(d->value, MAX_KEY_VALUE_STRING);
+    bzero(d->key, MAX_LONG_STRING_LENGTH);
+    bzero(d->value, MAX_LONG_STRING_LENGTH);
     bzero(d->tag, 1);
     return d;
 }
@@ -49,10 +48,10 @@ definition * _Nullable getDefinitions(void * _Nonnull neural, const char * _Nonn
     int lineCount = 1;
     bool first_character = true, found_tag = false;
     char ch = 0;
-    char str[MAX_KEY_VALUE_STRING];
+    char str[MAX_LONG_STRING_LENGTH];
     char tag[1];
     bool new_def;
-    char buff[MAX_KEY_VALUE_STRING];
+    char buff[MAX_LONG_STRING_LENGTH];
     int idx = 0;
     int total_key_values = 0;
     int defID = 0;
@@ -80,12 +79,13 @@ definition * _Nullable getDefinitions(void * _Nonnull neural, const char * _Nonn
         if(ch == '\n'){
             lineCount++;
         } else {
-            if (idx > MAX_KEY_VALUE_STRING) {
+            if (idx > MAX_LONG_STRING_LENGTH) {
                 fatal(PROGRAM_NAME, "string larger than buffer in getDefinitions().");
             }
             buff[idx] = ch;
             idx++;
             if (ch == '{' && !first_character) {
+                bool alreadyCanonized = false;
                 memset(str, 0, sizeof(str));
                 memcpy(str, buff, strlen(keyword));
                 if (strcmp(str, keyword) != 0) {
@@ -114,7 +114,16 @@ definition * _Nullable getDefinitions(void * _Nonnull neural, const char * _Nonn
                 int found_key = 0;
                 while(1) {
                     ch = fgetc(f1);
-                    if (ch == ' ') continue;
+                    if (ch == ' ') {
+                        // A space in the key name is replaced internally by '_'
+                        // (NB: Spaces in the key value are just ignored)
+                        if (found_key == 0 && buff[0] != 0 && !alreadyCanonized) {
+                            buff[idx] = '_';
+                            idx++;
+                            alreadyCanonized = true;
+                        }
+                        continue;
+                    }
                     if (ch == '}' && new_def) { // End of definition
                         if (!first_d_node) {
                             d_pos->next = d_pt;
@@ -176,7 +185,7 @@ definition * _Nullable getDefinitions(void * _Nonnull neural, const char * _Nonn
                         } else {
                             buff[idx] = ch;
                             idx++;
-                            if (idx >= MAX_KEY_VALUE_STRING) {
+                            if (idx >= MAX_LONG_STRING_LENGTH) {
                                 fatal(PROGRAM_NAME, "string larger than buffer in getDefinitions().");
                             }
                         }

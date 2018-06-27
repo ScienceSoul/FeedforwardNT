@@ -71,12 +71,11 @@ typedef struct data {
 } data;
 
 typedef struct parameters {
-    unsigned int number_of_suported_parameters;
     int epochs, miniBatchSize;
     unsigned int numberOfLayers, numberOfClassifications, numberOfActivationFunctions;
     float eta, lambda;
     
-    char supported_parameters[10][MAX_SHORT_STRING_LENGTH];
+    char supported_parameters[MAX_SUPPORTED_PARAMETERS][MAX_SHORT_STRING_LENGTH];
     char data[MAX_LONG_STRING_LENGTH], dataName[MAX_LONG_STRING_LENGTH];
     int topology[MAX_NUMBER_NETWORK_LAYERS], split[2], classifications[MAX_NUMBER_NETWORK_LAYERS];
     char activationFunctions[MAX_NUMBER_NETWORK_LAYERS][MAX_SHORT_STRING_LENGTH];

@@ -1,6 +1,6 @@
 {
   define {
-      data_name:iris
+      data name:iris
   }
   define {
       data:/Users/hakimeseddik/Documents/FeedforwardNT/iris/iris.dat
@@ -21,7 +21,7 @@
       epochs:100
   }
   define {
-      batch_size:10
+      batch size:10
   }
   define {
       eta:0.3

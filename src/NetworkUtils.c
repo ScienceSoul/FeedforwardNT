@@ -237,7 +237,7 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
         dictionary *field = pt->field;
         while (field != NULL) {
             bool found = false;
-            for (int i=0; i<nn->parameters->number_of_suported_parameters; i++) {
+            for (int i=0; i<MAX_SUPPORTED_PARAMETERS; i++) {
                 if (strcmp(field->key, nn->parameters->supported_parameters[i]) == 0) {
                     found = true;
                     break;

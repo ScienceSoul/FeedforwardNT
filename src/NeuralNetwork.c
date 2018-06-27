@@ -82,7 +82,6 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     strcpy(nn->parameters->supported_parameters[7], "batch_size");
     strcpy(nn->parameters->supported_parameters[8], "eta");
     strcpy(nn->parameters->supported_parameters[9], "lambda");
-    nn->parameters->number_of_suported_parameters = 10;
     
     bzero(nn->parameters->data, 256);
     bzero(nn->parameters->dataName, 256);
