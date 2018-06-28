@@ -48,6 +48,7 @@ float * _Nonnull initMatrices(int * _Nonnull topology, unsigned int numberOfLaye
     for (int l=0; l<numberOfLayers-1; l++) {
         dim = dim + (topology[l+1]*topology[l]);
     }
+    fprintf(stdout, "%s: matrices allocation: allocate %f (MB)\n", PROGRAM_NAME, ((float)dim*sizeof(float))/(float)(1024*1024));
     float *matrices = (float *)malloc(dim*sizeof(float));
     
     int stride = 0;
@@ -76,7 +77,7 @@ float * _Nonnull initVectors(int * _Nonnull topology, unsigned int numberOfLayer
     for (int l=1; l<numberOfLayers; l++) {
         dim  = dim + topology[l];
     }
-    
+    fprintf(stdout, "%s: vectors allocation: allocate %f (MB)\n", PROGRAM_NAME, ((float)dim*sizeof(float))/(float)(1024*1024));
     float *vectors = (float*)malloc(dim*sizeof(float));
     
     int stride = 0;
@@ -253,6 +254,7 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                 
             } else if (strcmp(field->key, "topology") == 0) {
                 parseArgument(field->value, field->key, nn->parameters->topology, &nn->parameters->numberOfLayers);
+                if (nn->parameters->numberOfLayers > MAX_NUMBER_NETWORK_LAYERS) fatal(PROGRAM_NAME, "the maximum number of layers in the network is currently:", MAX_NUMBER_NETWORK_LAYERS);
                 
             } else if (strcmp(field->key, "activations") == 0) {
                 
@@ -263,6 +265,7 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                 //      softmax ->  Softmax unit
                 
                 parseArgument(field->value, field->key, nn->parameters->activationFunctions, &nn->parameters->numberOfActivationFunctions);
+                if (nn->parameters->numberOfActivationFunctions > nn->parameters->numberOfLayers) fatal(PROGRAM_NAME, "the number of activation functions can't be higher than the number of network layers.");
                 
                 
                 if (nn->parameters->numberOfActivationFunctions > 1 && nn->parameters->numberOfActivationFunctions < nn->parameters->numberOfLayers-1) {
