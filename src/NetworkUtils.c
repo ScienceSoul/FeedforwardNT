@@ -37,58 +37,58 @@ void * _Nonnull allocateCostBiaseDerivativeNode(void) {
 }
 
 //
-//  Create the weights vector according to the number of layers in the network.
-//  The weights are initialized using a Gaussian distribution with mean 0
+//  Create the matrices of the network, typically used to create the weights and the weights velocity.
+//  They are initialized using a Gaussian distribution with mean 0
 //  and standard deviation 1 over the square root of the number of
-//  weights connecting to the same neuron.
+//  weights/velocities connecting to the same neuron.
 //
-float * _Nonnull initWeights(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
+float * _Nonnull initMatrices(int * _Nonnull topology, unsigned int numberOfLayers){
     
     int dim = 0;
     for (int l=0; l<numberOfLayers-1; l++) {
-        dim = dim + (ntLayers[l+1]*ntLayers[l]);
+        dim = dim + (topology[l+1]*topology[l]);
     }
-    float *weights = (float *)malloc(dim*sizeof(float));
+    float *matrices = (float *)malloc(dim*sizeof(float));
     
     int stride = 0;
     for (int l=0; l<numberOfLayers-1; l++) {
-        int m = ntLayers[l+1];
-        int n = ntLayers[l];
+        int m = topology[l+1];
+        int n = topology[l];
         for (int i = 0; i<m; i++) {
             for (int j=0; j<n; j++) {
-                weights[stride+((i*n)+j)] = randn(0.0f, 1.0f) / sqrtf((float)n);
+                matrices[stride+((i*n)+j)] = randn(0.0f, 1.0f) / sqrtf((float)n);
             }
         }
         stride = stride + (m * n);
     }
     
-    return weights;
+    return matrices;
 }
 
 //
-//  Create the biases vector according to the number of layers in the network.
-//  The biases are initialized using a Gaussian distribution with mean 0
+//  Create the vectors of the network, typically used to create the biases and the biases velocity.
+//  They are initialized using a Gaussian distribution with mean 0
 //  and standard deviation 1.
 //
-float * _Nonnull initBiases(int * _Nonnull ntLayers, unsigned int numberOfLayers) {
+float * _Nonnull initVectors(int * _Nonnull topology, unsigned int numberOfLayers) {
     
     int dim = 0;
     for (int l=1; l<numberOfLayers; l++) {
-        dim  = dim + ntLayers[l];
+        dim  = dim + topology[l];
     }
     
-    float *biases = (float*)malloc(dim*sizeof(float));
+    float *vectors = (float*)malloc(dim*sizeof(float));
     
     int stride = 0;
     for (int l=1; l<numberOfLayers; l++) {
-        int n = ntLayers[l];
+        int n = topology[l];
         for (int i = 0; i<n; i++) {
-            biases[stride+i] = randn(0.0f, 1.0f);
+            vectors[stride+i] = randn(0.0f, 1.0f);
         }
         stride = stride + n;
     }
     
-    return biases;
+    return vectors;
 }
 
 //
@@ -332,6 +332,9 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                 
             } else if (strcmp(field->key, "lambda") == 0) {
                 nn->parameters->lambda = strtof(field->value, NULL);
+            
+            } else if (strcmp(field->key, "momentum") == 0) {
+                nn->parameters->mu = strtof(field->value, NULL);
             }
             field = field->next;
         }

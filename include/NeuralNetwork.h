@@ -73,7 +73,7 @@ typedef struct data {
 typedef struct parameters {
     int epochs, miniBatchSize;
     unsigned int numberOfLayers, numberOfClassifications, numberOfActivationFunctions;
-    float eta, lambda;
+    float eta, lambda, mu;
     
     char supported_parameters[MAX_SUPPORTED_PARAMETERS][MAX_SHORT_STRING_LENGTH];
     char data[MAX_LONG_STRING_LENGTH], dataName[MAX_LONG_STRING_LENGTH];
@@ -95,7 +95,9 @@ typedef struct NeuralNetwork {
     unsigned int max_number_of_nodes_in_layer;
     
     float * _Nullable weights;
+    float * _Nullable weightsVelocity;
     float * _Nullable biases;
+    float * _Nullable biasesVelocity;
     weightMatrixDimension weightsDimensions[MAX_NUMBER_NETWORK_LAYERS];
     biasVectorDimension biasesDimensions[MAX_NUMBER_NETWORK_LAYERS];
     

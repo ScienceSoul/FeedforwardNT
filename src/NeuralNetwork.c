@@ -68,8 +68,7 @@ static void initNeuralData(void * _Nonnull self) {
 NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     
     NeuralNetwork *nn = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
-    *nn = (NeuralNetwork){.weights=NULL, .biases=NULL, .networkActivations=NULL, .networkAffineTransformations=NULL,
-                          .networkCostWeightDerivatives=NULL, .networkCostBiaseDerivatives=NULL, .deltaNetworkCostWeightDerivatives=NULL, .deltaNetworkCostBiaseDerivatives=NULL, .gpu=NULL};
+    *nn = (NeuralNetwork){.weights=NULL, .weightsVelocity=NULL, .biases=NULL, .biasesVelocity=NULL, .networkActivations=NULL, .networkAffineTransformations=NULL, .networkCostWeightDerivatives=NULL, .networkCostBiaseDerivatives=NULL, .deltaNetworkCostWeightDerivatives=NULL, .deltaNetworkCostBiaseDerivatives=NULL, .gpu=NULL};
     
     nn->parameters = (parameters *)malloc(sizeof(parameters));
     strcpy(nn->parameters->supported_parameters[0], "data_name");
@@ -82,6 +81,7 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     strcpy(nn->parameters->supported_parameters[7], "batch_size");
     strcpy(nn->parameters->supported_parameters[8], "eta");
     strcpy(nn->parameters->supported_parameters[9], "lambda");
+    strcpy(nn->parameters->supported_parameters[10], "momentum");
     
     bzero(nn->parameters->data, 256);
     bzero(nn->parameters->dataName, 256);
@@ -89,6 +89,7 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     nn->parameters->miniBatchSize = 0;
     nn->parameters->eta = 0.0f;
     nn->parameters->lambda = 0.0f;
+    nn->parameters->mu = 0.0f;
     memset(nn->parameters->topology, 0, sizeof(nn->parameters->topology));
     memset(nn->parameters->classifications, 0, sizeof(nn->parameters->classifications));
     memset(nn->parameters->split, 0, sizeof(nn->parameters->split));
@@ -142,8 +143,10 @@ static void genesis(void * _Nonnull self) {
         nn->biasesDimensions[l-1].n = nn->parameters->topology[l];
     }
     
-    nn->weights = initWeights(nn->parameters->topology, nn->parameters->numberOfLayers);
-    nn->biases = initBiases(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->weights = initMatrices(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->weightsVelocity = initMatrices(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->biases = initVectors(nn->parameters->topology, nn->parameters->numberOfLayers);
+    nn->biasesVelocity = initVectors(nn->parameters->topology, nn->parameters->numberOfLayers);
     nn->networkActivations = (activationNode *)initNetworkActivations(nn->parameters->topology, nn->parameters->numberOfLayers);
     nn->networkAffineTransformations = (affineTransformationNode *)initNetworkAffineTransformations(nn->parameters->topology, nn->parameters->numberOfLayers);
     nn->networkCostWeightDerivatives = (costWeightDerivativeNode *)initNetworkCostWeightDerivatives(nn->parameters->topology, nn->parameters->numberOfLayers);
@@ -173,7 +176,9 @@ static void finale(void * _Nonnull self) {
     free(nn->parameters);
     
     free(nn->weights);
+    free(nn->weightsVelocity);
     free(nn->biases);
+    free(nn->biasesVelocity);
     
     costWeightDerivativeNode *dcdwTail = nn->networkCostWeightDerivatives;
     while (dcdwTail != NULL && dcdwTail->next ) {
@@ -424,7 +429,8 @@ static void updateWeightsBiases(void * _Nonnull self) {
         unsigned int n = nn->weightsDimensions[l].n;
         for (int i=0; i<m; i++) {
             for (int j=0; j<n; j++) {
-                nn->weights[stride+((i*n)+j)] = (1.0f-((nn->parameters->eta*nn->parameters->lambda)/(float)nn->data->training->m))*nn->weights[stride+((i*n)+j)] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdwNodePt->dcdw[i][j];
+                nn->weightsVelocity[stride+((i*n)+j)] = nn->parameters->mu*nn->weightsVelocity[stride+((i*n)+j)] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdwNodePt->dcdw[i][j];
+                nn->weights[stride+((i*n)+j)] = (1.0f-((nn->parameters->eta*nn->parameters->lambda)/(float)nn->data->training->m))*nn->weights[stride+((i*n)+j)] + nn->weightsVelocity[stride+((i*n)+j)];
             }
         }
         dcdwNodePt = dcdwNodePt->next;
@@ -439,7 +445,8 @@ static void updateWeightsBiases(void * _Nonnull self) {
     while (dcdbNodePt != NULL) {
         unsigned int n = nn->biasesDimensions[l].n;
         for (int i=0; i<n; i++) {
-            nn->biases[stride+i] = nn->biases[stride+i] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdbNodePt->dcdb[i];
+            nn->biasesVelocity[stride+i] = nn->parameters->mu*nn->biasesVelocity[stride+i] - (nn->parameters->eta/(float)nn->parameters->miniBatchSize)*dcdbNodePt->dcdb[i];
+            nn->biases[stride+i] = nn->biases[stride+i] + nn->biasesVelocity[stride+i];
         }
         dcdbNodePt = dcdbNodePt->next;
         l++;
