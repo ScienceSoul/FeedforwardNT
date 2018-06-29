@@ -45,6 +45,7 @@
 		0161750820E1FD5E00FC40FF /* NetworkUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NetworkUtils.h; path = include/NetworkUtils.h; sourceTree = "<group>"; };
 		0161750920E2008800FC40FF /* Data.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = Data.c; path = src/Data.c; sourceTree = "<group>"; };
 		0161750B20E200A000FC40FF /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Data.h; path = include/Data.h; sourceTree = "<group>"; };
+		0161750E20E48B9500FC40FF /* Optimization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Optimization.h; path = include/Optimization.h; sourceTree = "<group>"; };
 		01B73F9E20C0E2FA0096F830 /* LoadMNISTDataSet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LoadMNISTDataSet.h; path = include/LoadMNISTDataSet.h; sourceTree = "<group>"; };
 		01B73F9F20C0E5060096F830 /* LoadMNISTDataSet.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = LoadMNISTDataSet.c; path = src/LoadMNISTDataSet.c; sourceTree = "<group>"; };
 		01F6EC0D20CA696A00CC5606 /* MetalCompute.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = MetalCompute.m; path = src/MetalCompute.m; sourceTree = "<group>"; };
@@ -122,6 +123,7 @@
 				7332086E1F14D68700B4611F /* Memory.h */,
 				0161750520DC939500FC40FF /* Parsing.h */,
 				0161750B20E200A000FC40FF /* Data.h */,
+				0161750E20E48B9500FC40FF /* Optimization.h */,
 				01F6EC0F20CA69D800CC5606 /* MetalCompute.h */,
 				733208721F14D68700B4611F /* Utils.h */,
 				733208711F14D68700B4611F /* TimeProfile.h */,

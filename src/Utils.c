@@ -273,6 +273,46 @@ void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument,
     }
 }
 
+void __attribute__ ((overloadable))parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, float * _Nonnull result, unsigned int * _Nonnull numberOfItems, unsigned int *_Nonnull len) {
+    
+    int idx = 0;
+    int bf_idx = 0;
+    *numberOfItems = 0;
+    char buffer[MAX_SHORT_STRING_LENGTH];
+    
+    
+    fprintf(stdout, "%s: parsing the key value <%s>: %s.\n", PROGRAM_NAME, argumentName, argument);
+    
+    size_t lenght = strlen(argument);
+    if (argument[0] != '[' || argument[lenght-1] != ']') fatal(PROGRAM_NAME, "syntax error in key value. Collections must use the [ ] syntax.");
+    if ( argument[lenght-2] == ')') fatal(PROGRAM_NAME, "a range definition can't be used to define the activation function at the network output layer.");
+    
+    memset(buffer, 0, sizeof(buffer));
+    while (1) {
+        if (argument[idx] == '[') {
+            if (argument[idx+1] == ',' || argument[idx+1] == '[') fatal(PROGRAM_NAME, "syntax error possibly <[,> or <[[> in key value");
+            idx++;
+        }
+        if (argument[idx] == ',' || argument[idx] == ']') {
+            if (argument[idx] == ',') {
+                if (argument[idx+1] == ']' || argument[idx+1] == ',') fatal(PROGRAM_NAME, "syntax error possibly <,]> or <,,> in key value.");
+            }
+            if (*numberOfItems >= *len) fatal(PROGRAM_NAME, "buffer overflow when parsing the key:", (char *)argumentName);
+            result[*numberOfItems] = strtof(buffer, NULL);
+            (*numberOfItems)++;
+            if (argument[idx] == ']') break;
+            idx++;
+            memset(buffer, 0, sizeof(buffer));
+            bf_idx = 0;
+        } else {
+            if (bf_idx >= MAX_SHORT_STRING_LENGTH) fatal(PROGRAM_NAME, "buffer overflow when parsing the key:", (char *)argumentName);
+            buffer[bf_idx] = argument[idx];
+            bf_idx++;
+            idx++;
+        }
+    }
+}
+
 
 // Generate random numbers from Normal Distribution (Gauss Distribution) with mean mu and standard deviation sigma
 // using the Marsaglia and Bray method

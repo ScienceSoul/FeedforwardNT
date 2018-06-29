@@ -42,7 +42,7 @@ void * _Nonnull allocateCostBiaseDerivativeNode(void) {
 //  and standard deviation 1 over the square root of the number of
 //  weights/velocities connecting to the same neuron.
 //
-float * _Nonnull initMatrices(int * _Nonnull topology, unsigned int numberOfLayers){
+float * _Nonnull initMatrices(int * _Nonnull topology, unsigned int numberOfLayers, bool gaussian) {
     
     int dim = 0;
     for (int l=0; l<numberOfLayers-1; l++) {
@@ -51,16 +51,20 @@ float * _Nonnull initMatrices(int * _Nonnull topology, unsigned int numberOfLaye
     fprintf(stdout, "%s: matrices allocation: allocate %f (MB)\n", PROGRAM_NAME, ((float)dim*sizeof(float))/(float)(1024*1024));
     float *matrices = (float *)malloc(dim*sizeof(float));
     
-    int stride = 0;
-    for (int l=0; l<numberOfLayers-1; l++) {
-        int m = topology[l+1];
-        int n = topology[l];
-        for (int i = 0; i<m; i++) {
-            for (int j=0; j<n; j++) {
-                matrices[stride+((i*n)+j)] = randn(0.0f, 1.0f) / sqrtf((float)n);
+    if (gaussian) {
+        int stride = 0;
+        for (int l=0; l<numberOfLayers-1; l++) {
+            int m = topology[l+1];
+            int n = topology[l];
+            for (int i = 0; i<m; i++) {
+                for (int j=0; j<n; j++) {
+                    matrices[stride+((i*n)+j)] = randn(0.0f, 1.0f) / sqrtf((float)n);
+                }
             }
+            stride = stride + (m * n);
         }
-        stride = stride + (m * n);
+    } else {
+        memset(matrices, 0.0f, dim*sizeof(float));
     }
     
     return matrices;
@@ -71,7 +75,7 @@ float * _Nonnull initMatrices(int * _Nonnull topology, unsigned int numberOfLaye
 //  They are initialized using a Gaussian distribution with mean 0
 //  and standard deviation 1.
 //
-float * _Nonnull initVectors(int * _Nonnull topology, unsigned int numberOfLayers) {
+float * _Nonnull initVectors(int * _Nonnull topology, unsigned int numberOfLayers, bool gaussian) {
     
     int dim = 0;
     for (int l=1; l<numberOfLayers; l++) {
@@ -80,13 +84,17 @@ float * _Nonnull initVectors(int * _Nonnull topology, unsigned int numberOfLayer
     fprintf(stdout, "%s: vectors allocation: allocate %f (MB)\n", PROGRAM_NAME, ((float)dim*sizeof(float))/(float)(1024*1024));
     float *vectors = (float*)malloc(dim*sizeof(float));
     
-    int stride = 0;
-    for (int l=1; l<numberOfLayers; l++) {
-        int n = topology[l];
-        for (int i = 0; i<n; i++) {
-            vectors[stride+i] = randn(0.0f, 1.0f);
+    if (gaussian) {
+        int stride = 0;
+        for (int l=1; l<numberOfLayers; l++) {
+            int n = topology[l];
+            for (int i = 0; i<n; i++) {
+                vectors[stride+i] = randn(0.0f, 1.0f);
+            }
+            stride = stride + n;
         }
-        stride = stride + n;
+    } else {
+        memset(vectors, 0.0f, dim*sizeof(float));
     }
     
     return vectors;
@@ -330,14 +338,49 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
             } else if (strcmp(field->key, "batch_size") == 0) {
                 nn->parameters->miniBatchSize = atoi(field->value);
                 
-            } else if (strcmp(field->key, "eta") == 0) {
+            } else if (strcmp(field->key, "learning_rate") == 0) {
                 nn->parameters->eta = strtof(field->value, NULL);
                 
-            } else if (strcmp(field->key, "lambda") == 0) {
+            } else if (strcmp(field->key, "regularization_factor") == 0) {
                 nn->parameters->lambda = strtof(field->value, NULL);
             
             } else if (strcmp(field->key, "momentum") == 0) {
                 nn->parameters->mu = strtof(field->value, NULL);
+            
+            } else if (strcmp(field->key, "adagrad") == 0) {
+                nn->adaGrad = (AdaGrad *)malloc(sizeof(AdaGrad));
+                nn->adaGrad->delta = strtof(field->value, NULL);
+                nn->adaGrad->costWeightDerivativeSquaredAccumulated = NULL;
+                nn->adaGrad->costBiasDerivativeSquaredAccumulated = NULL;
+                nn->adapativeLearningRateMethod = ADAGRAD;
+            
+            } else if (strcmp(field->key, "rmsprop") == 0) {
+                nn->rmsProp = (RMSProp *)malloc(sizeof(RMSProp));
+                float result[2];
+                unsigned int numberOfItems, len = 2;
+                parseArgument(field->value, field->key, result, &numberOfItems, &len);
+                if (numberOfItems < 2) fatal(PROGRAM_NAME, "the decay rate and a small constant should be given for the RMSProp method.");
+                nn->rmsProp->decayRate = result[0];
+                nn->rmsProp->delta = result[1];
+                nn->rmsProp->costWeightDerivativeSquaredAccumulated = NULL;
+                nn->rmsProp->costBiasDerivativeSquaredAccumulated = NULL;
+                nn->adapativeLearningRateMethod = RMSPROP;
+            
+            } else if (strcmp(field->key, "adam") == 0) {
+                nn->adam = (Adam *)malloc(sizeof(Adam));
+                float result[3];
+                unsigned int numberOfItems, len=3;
+                parseArgument(field->value, field->key, result, &numberOfItems, &len);
+                if (numberOfItems < 3) fatal(PROGRAM_NAME, "Two decay rates and a small constant should be given for the Adam method.");
+                nn->adam->time = 0;
+                nn->adam->decayRate1 = result[0];
+                nn->adam->decayRate2 = result[1];
+                nn->adam->delta = result[2];
+                nn->adam->weightsBiasedFirstMomentEstimate = NULL;
+                nn->adam->weightsBiasedSecondMomentEstimate = NULL;
+                nn->adam->biasesBiasedFirstMomentEstimate = NULL;
+                nn->adam->biasesBiasedSecondMomentEstimate = NULL;
+                nn->adapativeLearningRateMethod = ADAM;
             }
             field = field->next;
         }

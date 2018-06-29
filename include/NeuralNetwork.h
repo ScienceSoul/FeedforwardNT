@@ -10,6 +10,7 @@
 
 #include "MetalCompute.h"
 #include "Utils.h"
+#include "Optimization.h"
 
 typedef struct weightMatrixDimension {
     unsigned int m, n;
@@ -91,8 +92,8 @@ typedef struct NeuralNetwork {
     int example_idx;
     unsigned int number_of_parameters;
     unsigned int number_of_features;
-    unsigned int number_of_layers;
     unsigned int max_number_of_nodes_in_layer;
+    unsigned int adapativeLearningRateMethod;
     
     float * _Nullable weights;
     float * _Nullable weightsVelocity;
@@ -109,6 +110,10 @@ typedef struct NeuralNetwork {
     costBiaseDerivativeNode * _Nullable deltaNetworkCostBiaseDerivatives;
     
     MetalCompute * _Nullable gpu;
+    
+    AdaGrad * _Nullable adaGrad;
+    RMSProp * _Nullable rmsProp;
+    Adam    * _Nullable adam;
     
     void (* _Nullable genesis)(void * _Nonnull self);
     void (* _Nullable finale)(void * _Nonnull self);

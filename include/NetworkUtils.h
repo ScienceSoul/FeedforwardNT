@@ -9,13 +9,15 @@
 #ifndef NetworkUtils_h
 #define NetworkUtils_h
 
+#include <stdbool.h>
+
 void * _Nonnull allocateActivationNode(void);
 void * _Nonnull allocateAffineTransformationNode(void);
 void * _Nonnull allocateCostWeightDerivativeNode(void);
 void * _Nonnull allocateCostBiaseDerivativeNode(void);
 
-float * _Nonnull initMatrices(int * _Nonnull topology, unsigned int numberOfLayers);
-float * _Nonnull initVectors(int * _Nonnull topology, unsigned int numberOfLayers);
+float * _Nonnull initMatrices(int * _Nonnull topology, unsigned int numberOfLayers, bool gaussian);
+float * _Nonnull initVectors(int * _Nonnull topology, unsigned int numberOfLayers, bool gaussian);
 
 void * _Nonnull initNetworkActivations(int * _Nonnull ntLayers, unsigned int numberOfLayers);
 void * _Nonnull initNetworkAffineTransformations(int * _Nonnull ntLayers, unsigned int numberOfLayers);
