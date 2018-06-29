@@ -241,6 +241,13 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
     
     NeuralNetwork *nn = (NeuralNetwork *)self;
     
+    short FOUND_DATA_NAME      = 0;
+    short FOUND_DATA           = 0;
+    short FOUND_TOPOLOGY       = 0;
+    short FOUND_ACTIVATIONS    = 0;
+    short FOUND_SPLIT          = 0;
+    short FOUND_CLASSIFICATION = 0;
+    
     definition *pt = definitions;
     while (pt != NULL) {
         dictionary *field = pt->field;
@@ -256,13 +263,16 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
             
             if (strcmp(field->key, "data_name") == 0) {
                 strcpy(nn->parameters->dataName, field->value);
+                FOUND_DATA_NAME = 1;
                 
             } else if (strcmp(field->key, "data") == 0) {
                 strcpy(nn->parameters->data, field->value);
+                FOUND_DATA = 1;
                 
             } else if (strcmp(field->key, "topology") == 0) {
                 unsigned int len = MAX_NUMBER_NETWORK_LAYERS;
                 parseArgument(field->value, field->key, nn->parameters->topology, &nn->parameters->numberOfLayers, &len);
+                FOUND_TOPOLOGY = 1;
                 
             } else if (strcmp(field->key, "activations") == 0) {
                 
@@ -271,6 +281,10 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                 //      relu    ->  Rectified linear unit
                 //      tanh    ->  Hyperbolic tangent
                 //      softmax ->  Softmax unit
+                
+                if (FOUND_TOPOLOGY == 0) {
+                    fatal(PROGRAM_NAME, "missing topology in parameters input.");
+                }
                 
                 unsigned int len = MAX_NUMBER_NETWORK_LAYERS;
                 parseArgument(field->value, field->key, nn->parameters->activationFunctions, &nn->parameters->numberOfActivationFunctions, &len);
@@ -319,6 +333,7 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                         } else fatal(PROGRAM_NAME, "unsupported or unrecognized activation function:", nn->parameters->activationFunctions[i]);
                     }
                 }
+                FOUND_ACTIVATIONS = 1;
                 
             } else if (strcmp(field->key, "split") == 0) {
                 unsigned int n;
@@ -327,10 +342,12 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                 if (n < 2) {
                     fatal(PROGRAM_NAME, " data splitting requires two values: one for training, one for testing/evaluation.");
                 }
+                FOUND_SPLIT = 1;
                 
             } else if (strcmp(field->key, "classification") == 0) {
                 unsigned int len = MAX_NUMBER_NETWORK_LAYERS;
                 parseArgument(field->value, field->key, nn->parameters->classifications, &nn->parameters->numberOfClassifications, &len);
+                FOUND_CLASSIFICATION = 1;
                 
             } else if (strcmp(field->key, "epochs") == 0) {
                 nn->parameters->epochs = atoi(field->value);
@@ -385,6 +402,28 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
             field = field->next;
         }
         pt = pt->next;
+    }
+    
+    if (FOUND_DATA_NAME == 0) {
+        fatal(PROGRAM_NAME, "missing data name in parameters input.");
+    }
+    if (FOUND_DATA == 0) {
+        fatal(PROGRAM_NAME, "missing data in parameters input.");
+    }
+    if (FOUND_TOPOLOGY == 0) {
+        fatal(PROGRAM_NAME, "missing topology in parameters input.");
+    }
+    if (FOUND_ACTIVATIONS == 0) {
+        for (int i=0; i<nn->parameters->numberOfLayers-1; i++) {
+            nn->activationFunctions[i] = sigmoid;
+            nn->activationDerivatives[i] = sigmoidPrime;
+        }
+    }
+    if (FOUND_SPLIT == 0) {
+        fatal(PROGRAM_NAME, "missing split in parameters input.");
+    }
+    if (FOUND_CLASSIFICATION == 0) {
+        fatal(PROGRAM_NAME, "missing classification in parameters input.");
     }
     
     return 0;

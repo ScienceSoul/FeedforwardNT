@@ -88,9 +88,9 @@ NeuralNetwork * _Nonnull newNeuralNetwork(void) {
     
     bzero(nn->parameters->data, 256);
     bzero(nn->parameters->dataName, 256);
-    nn->parameters->epochs = 0;
-    nn->parameters->miniBatchSize = 0;
-    nn->parameters->eta = 0.0f;
+    nn->parameters->epochs = 30;
+    nn->parameters->miniBatchSize = 10;
+    nn->parameters->eta = 0.5f;
     nn->parameters->lambda = 0.0f;
     nn->parameters->mu = 0.0f;
     nn->adapativeLearningRateMethod = 0;
