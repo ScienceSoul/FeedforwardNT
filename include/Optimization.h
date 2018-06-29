@@ -30,6 +30,7 @@ typedef struct RMSProp {
 
 typedef struct Adam {
     unsigned int time;
+    float stepSize;
     float delta;
     float decayRate1;
     float decayRate2;

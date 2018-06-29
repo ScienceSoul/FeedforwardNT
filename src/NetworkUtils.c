@@ -385,14 +385,15 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
             
             } else if (strcmp(field->key, "adam") == 0) {
                 nn->adam = (Adam *)malloc(sizeof(Adam));
-                float result[3];
-                unsigned int numberOfItems, len=3;
+                float result[4];
+                unsigned int numberOfItems, len=4;
                 parseArgument(field->value, field->key, result, &numberOfItems, &len);
-                if (numberOfItems < 3) fatal(PROGRAM_NAME, "Two decay rates and a small constant should be given for the Adam method.");
+                if (numberOfItems < 4) fatal(PROGRAM_NAME, "The step size, two decay rates and a small constant should be given for the Adam method.");
                 nn->adam->time = 0;
-                nn->adam->decayRate1 = result[0];
-                nn->adam->decayRate2 = result[1];
-                nn->adam->delta = result[2];
+                nn->adam->stepSize = result[0];
+                nn->adam->decayRate1 = result[1];
+                nn->adam->decayRate2 = result[2];
+                nn->adam->delta = result[3];
                 nn->adam->weightsBiasedFirstMomentEstimate = NULL;
                 nn->adam->weightsBiasedSecondMomentEstimate = NULL;
                 nn->adam->biasesBiasedFirstMomentEstimate = NULL;
