@@ -261,8 +261,8 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                 strcpy(nn->parameters->data, field->value);
                 
             } else if (strcmp(field->key, "topology") == 0) {
-                parseArgument(field->value, field->key, nn->parameters->topology, &nn->parameters->numberOfLayers);
-                if (nn->parameters->numberOfLayers > MAX_NUMBER_NETWORK_LAYERS) fatal(PROGRAM_NAME, "the maximum number of layers in the network is currently:", MAX_NUMBER_NETWORK_LAYERS);
+                unsigned int len = MAX_NUMBER_NETWORK_LAYERS;
+                parseArgument(field->value, field->key, nn->parameters->topology, &nn->parameters->numberOfLayers, &len);
                 
             } else if (strcmp(field->key, "activations") == 0) {
                 
@@ -272,14 +272,12 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                 //      tanh    ->  Hyperbolic tangent
                 //      softmax ->  Softmax unit
                 
-                parseArgument(field->value, field->key, nn->parameters->activationFunctions, &nn->parameters->numberOfActivationFunctions);
-                if (nn->parameters->numberOfActivationFunctions > nn->parameters->numberOfLayers) fatal(PROGRAM_NAME, "the number of activation functions can't be higher than the number of network layers.");
-                
+                unsigned int len = MAX_NUMBER_NETWORK_LAYERS;
+                parseArgument(field->value, field->key, nn->parameters->activationFunctions, &nn->parameters->numberOfActivationFunctions, &len);
                 
                 if (nn->parameters->numberOfActivationFunctions > 1 && nn->parameters->numberOfActivationFunctions < nn->parameters->numberOfLayers-1) {
                     fatal(PROGRAM_NAME, "the number of activation functions in parameters is too low. Can't resolve how to use the provided activations. ");
                 }
-                
                 if (nn->parameters->numberOfActivationFunctions > nn->parameters->numberOfLayers-1) {
                     fprintf(stdout, "%s: too many activation functions given to network. Will ignore the extra ones.\n", PROGRAM_NAME);
                 }
@@ -324,13 +322,15 @@ int loadParameters(void * _Nonnull self, const char * _Nonnull paraFile) {
                 
             } else if (strcmp(field->key, "split") == 0) {
                 unsigned int n;
-                parseArgument(field->value,  field->key, nn->parameters->split, &n);
-                if (n != 2) {
-                    fatal(PROGRAM_NAME, " input data set should only be splitted in two parts: one for training, one for testing/evaluation.");
+                unsigned int len = 2;
+                parseArgument(field->value,  field->key, nn->parameters->split, &n, &len);
+                if (n < 2) {
+                    fatal(PROGRAM_NAME, " data splitting requires two values: one for training, one for testing/evaluation.");
                 }
                 
             } else if (strcmp(field->key, "classification") == 0) {
-                parseArgument(field->value, field->key, nn->parameters->classifications, &nn->parameters->numberOfClassifications);
+                unsigned int len = MAX_NUMBER_NETWORK_LAYERS;
+                parseArgument(field->value, field->key, nn->parameters->classifications, &nn->parameters->numberOfClassifications, &len);
                 
             } else if (strcmp(field->key, "epochs") == 0) {
                 nn->parameters->epochs = atoi(field->value);

@@ -35,8 +35,8 @@ void __attribute__((overloadable)) warning(char head[_Nonnull], char message[_No
 
 void shuffle(float * _Nonnull * _Nonnull array, unsigned int len1, unsigned int len2);
 
-void __attribute__((overloadable))parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int  * _Nonnull result, unsigned int * _Nonnull numberOfItems);
-void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, char result[_Nonnull][128], unsigned int * _Nonnull numberOfItems);
+void __attribute__((overloadable))parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, int  * _Nonnull result, unsigned int * _Nonnull numberOfItems, unsigned int * _Nonnull len);
+void __attribute__((overloadable)) parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, char result[_Nonnull][128], unsigned int * _Nonnull numberOfItems, unsigned int * _Nonnull len);
 void __attribute__ ((overloadable))parseArgument(const char * _Nonnull argument, const char * _Nonnull argumentName, float * _Nonnull result, unsigned int * _Nonnull numberOfItems, unsigned int *_Nonnull len);
 
 
