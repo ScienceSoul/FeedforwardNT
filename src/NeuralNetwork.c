@@ -340,7 +340,7 @@ static void computeNeural(void * _Nonnull self, bool * _Nullable showTotalCost) 
         int step = train_size / (100/percentPrint);
         int nextPrint = step;
         int i = 0;
-        for (int l=1; l<=(int)nn->data->training->m/nn->parameters->miniBatchSize; l++) {
+        for (int l=1; l<=(int)ceil((int)nn->data->training->m/nn->parameters->miniBatchSize); l++) {
             memcpy(*miniBatch, *nn->data->training->set+delta, (nn->parameters->miniBatchSize*(int)nn->data->training->n)*sizeof(float));
             double rt = realtime();
             nn->miniBatch((void *)nn, miniBatch);
