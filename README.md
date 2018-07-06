@@ -1,7 +1,8 @@
 # FeedforwardNT
 
 ```
-NOTE: The code developed for this project is now used for the BrainStorm library. See the latter for further development. 
+NOTE: The code developed for this project is now used for the BrainStorm library. 
+See the latter for further development. 
 ```
 
 ### Description:
