@@ -1,5 +1,9 @@
 # FeedforwardNT
 
+```
+NOTE: The code developed for this project is now used for the BrainStorm library. See the latter for further development. 
+```
+
 ### Description:
 
 This program demonstrates the implementation of a feedforward neural network. It uses a stochastic gradient descent method with back propagation and a cross-entropy cost function. The activation function is the sigmoid function.
